@@ -1,0 +1,10 @@
+# Normalise to LF in the repository. Windows checkouts still get CRLF where it
+# matters; without this, every file committed from PowerShell shows up as a
+# whole-file diff on a Linux checkout.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.woff2 binary
+*.parquet binary
+*.ico binary

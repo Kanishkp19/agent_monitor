@@ -1,0 +1,154 @@
+{
+  "_comment": "The floor plan. Five rooms as separate floating islands, which is an engineering choice as much as an aesthetic one: no doors, no corridors, no inter-room pathfinding and no occlusion problems. Characters never leave their room, so the hardest part of isometric rendering does not arise. Desk slot ids are the contract with sim/office_map.py -- seed.py writes emp_007 -> dev_floor/d04 and the renderer looks up the slot.",
+  "tileWidth": 64,
+  "tileHeight": 32,
+  "width": 48,
+  "height": 40,
+  "rooms": [
+    {
+      "id": "ceo_office",
+      "label": "CEO OFFICE",
+      "origin": [2, 2],
+      "size": [10, 8],
+      "floorTile": "floor_wood",
+      "walls": { "back": "brick_ne", "left": "brick_nw" },
+      "labelAnchor": [7, 5],
+      "furniture": [
+        { "type": "desk_e", "at": [5, 5] },
+        { "type": "chair_e", "at": [6, 5] },
+        { "type": "monitor", "at": [5, 5] },
+        { "type": "bookshelf", "at": [3, 3] },
+        { "type": "plant_tall", "at": [10, 8] }
+      ],
+      "desks": [{ "slot": "c01", "at": [5, 5], "facing": "e" }]
+    },
+    {
+      "id": "managers",
+      "label": "MANAGERS",
+      "origin": [16, 1],
+      "size": [12, 7],
+      "floorTile": "floor_carpet_red",
+      "walls": { "back": "brick_ne", "left": "brick_nw" },
+      "labelAnchor": [22, 4],
+      "furniture": [
+        { "type": "desk_e", "at": [19, 3] },
+        { "type": "chair_e", "at": [20, 3] },
+        { "type": "monitor", "at": [19, 3] },
+        { "type": "desk_e", "at": [23, 3] },
+        { "type": "chair_e", "at": [24, 3] },
+        { "type": "monitor", "at": [23, 3] },
+        { "type": "desk_e", "at": [19, 6] },
+        { "type": "whiteboard", "at": [26, 2] },
+        { "type": "plant_small", "at": [27, 7] }
+      ],
+      "desks": [
+        { "slot": "m01", "at": [19, 3], "facing": "e" },
+        { "slot": "m02", "at": [23, 3], "facing": "e" },
+        { "slot": "m03", "at": [19, 6], "facing": "e" }
+      ]
+    },
+    {
+      "id": "dev_floor",
+      "label": "DEVELOPMENT FLOOR",
+      "origin": [26, 5],
+      "size": [20, 22],
+      "floorTile": "floor_grey",
+      "walls": { "back": "brick_ne", "left": "brick_nw" },
+      "labelAnchor": [36, 14],
+      "furniture": [
+        { "type": "desk_e", "at": [28, 8] },
+        { "type": "desk_e", "at": [31, 8] },
+        { "type": "desk_e", "at": [34, 8] },
+        { "type": "desk_e", "at": [37, 8] },
+        { "type": "desk_e", "at": [40, 8] },
+        { "type": "desk_e", "at": [28, 12] },
+        { "type": "desk_e", "at": [31, 12] },
+        { "type": "desk_e", "at": [34, 12] },
+        { "type": "desk_e", "at": [37, 12] },
+        { "type": "desk_e", "at": [40, 12] },
+        { "type": "desk_e", "at": [28, 16] },
+        { "type": "desk_e", "at": [31, 16] },
+        { "type": "desk_e", "at": [34, 16] },
+        { "type": "desk_e", "at": [37, 16] },
+        { "type": "desk_e", "at": [40, 16] },
+        { "type": "desk_e", "at": [28, 20] },
+        { "type": "desk_e", "at": [31, 20] },
+        { "type": "desk_e", "at": [34, 20] },
+        { "type": "partition", "at": [30, 10] },
+        { "type": "partition", "at": [33, 10] },
+        { "type": "partition", "at": [36, 10] },
+        { "type": "partition", "at": [30, 14] },
+        { "type": "partition", "at": [33, 14] },
+        { "type": "water_cooler", "at": [44, 6] },
+        { "type": "coffee", "at": [45, 7] },
+        { "type": "printer", "at": [44, 10] },
+        { "type": "plant_tall", "at": [27, 25] },
+        { "type": "plant_small", "at": [44, 24] }
+      ],
+      "desks": [
+        { "slot": "d01", "at": [28, 8], "facing": "e" },
+        { "slot": "d02", "at": [31, 8], "facing": "e" },
+        { "slot": "d03", "at": [34, 8], "facing": "e" },
+        { "slot": "d04", "at": [37, 8], "facing": "e" },
+        { "slot": "d05", "at": [40, 8], "facing": "e" },
+        { "slot": "d06", "at": [28, 12], "facing": "e" },
+        { "slot": "d07", "at": [31, 12], "facing": "e" },
+        { "slot": "d08", "at": [34, 12], "facing": "e" },
+        { "slot": "d09", "at": [37, 12], "facing": "e" },
+        { "slot": "d10", "at": [40, 12], "facing": "e" },
+        { "slot": "d11", "at": [28, 16], "facing": "e" },
+        { "slot": "d12", "at": [31, 16], "facing": "e" },
+        { "slot": "d13", "at": [34, 16], "facing": "e" },
+        { "slot": "d14", "at": [37, 16], "facing": "e" },
+        { "slot": "d15", "at": [40, 16], "facing": "e" },
+        { "slot": "d16", "at": [28, 20], "facing": "e" },
+        { "slot": "d17", "at": [31, 20], "facing": "e" },
+        { "slot": "d18", "at": [34, 20], "facing": "e" }
+      ]
+    },
+    {
+      "id": "devops",
+      "label": "DEVOPS",
+      "origin": [1, 13],
+      "size": [11, 8],
+      "floorTile": "floor_grey",
+      "walls": { "back": "brick_ne", "left": "brick_nw" },
+      "labelAnchor": [6, 16],
+      "furniture": [
+        { "type": "desk_e", "at": [4, 16] },
+        { "type": "monitor", "at": [4, 16] },
+        { "type": "desk_e", "at": [8, 16] },
+        { "type": "server_rack", "at": [2, 14] },
+        { "type": "server_rack", "at": [3, 14] },
+        { "type": "plant_small", "at": [11, 20] }
+      ],
+      "desks": [
+        { "slot": "o01", "at": [4, 16], "facing": "e" },
+        { "slot": "o02", "at": [8, 16], "facing": "e" }
+      ]
+    },
+    {
+      "id": "meeting_room",
+      "label": "MEETING ROOM",
+      "origin": [5, 24],
+      "size": [16, 12],
+      "floorTile": "floor_carpet_red",
+      "walls": { "back": "brick_ne", "left": "brick_nw" },
+      "labelAnchor": [13, 29],
+      "furniture": [
+        { "type": "meeting_table", "at": [11, 29] },
+        { "type": "meeting_table", "at": [12, 29] },
+        { "type": "meeting_table", "at": [13, 29] },
+        { "type": "chair_s", "at": [11, 28] },
+        { "type": "chair_s", "at": [12, 28] },
+        { "type": "chair_s", "at": [13, 28] },
+        { "type": "chair_n", "at": [11, 30] },
+        { "type": "chair_n", "at": [12, 30] },
+        { "type": "chair_n", "at": [13, 30] },
+        { "type": "whiteboard", "at": [8, 25] },
+        { "type": "plant_tall", "at": [19, 34] }
+      ],
+      "desks": []
+    }
+  ]
+}

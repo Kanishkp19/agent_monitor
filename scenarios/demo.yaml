@@ -1,0 +1,98 @@
+# The scripted demo beats.
+#
+# `make demo` runs the same three minutes every time. The simulation is already
+# deterministic from its seed, but pinning specific beats to specific minutes
+# means the interesting moments land while someone is watching rather than
+# whenever the random draw happens to produce them.
+#
+# Loaded by `sim/scenarios.py`. A missing or malformed file is not fatal --
+# the simulation is fully functional without one.
+
+name: demo
+description: The three-minute beat sheet from docs/06-IMPLEMENTATION-PLAN.md section 9d.
+seed: 20260918
+
+beats:
+  - at_sim_minute: 0
+    label: Office at 1x, twenty characters working
+    note: Green badges, the system log ticking.
+
+  - at_sim_minute: 20
+    label: Rahul asks the agent to fix authentication
+    employee: emp_013
+    task_type: bug_fix
+    repo: payments-api
+    environment: production
+    note: Bubble over his head, Gate 1 allows, a Live Feed row appears.
+
+  - at_sim_minute: 35
+    label: Agent reads files and runs tests
+    note: Green rows accumulating.
+
+  - at_sim_minute: 50
+    label: Agent attempts read_file .env.production
+    employee: emp_013
+    force_tool: read_file
+    force_args:
+      repo: payments-api
+      path: .env.production
+    note: >
+      Rahul turns red, the log prints the block, the dashboard shows the
+      secret protected. This is the beat the whole product exists for.
+
+  - at_sim_minute: 70
+    label: Priya's session spikes to 6x tokens
+    employee: emp_007
+    token_multiplier: 6.0
+    note: Amber cost-anomaly badge.
+
+  - at_sim_minute: 85
+    label: Aman's agent requests a production deploy
+    employee: emp_008
+    force_tool: deploy
+    force_args:
+      repo: payments-api
+      environment: production
+    note: Ben's avatar gets a bell.
+
+  - at_sim_minute: 95
+    label: Approve from the Approvals queue
+    note: Aman turns green, the deployment continues.
+
+  - at_sim_minute: 115
+    label: Switch to 100x, fast-forward one week
+    note: Progress overlay, then the summary card.
+
+  - at_sim_minute: 135
+    label: Incidents -- Nikhil, risk 84
+    employee: emp_017
+    note: >
+      Three plain-language factors, never a label. The detector was never told
+      who he is.
+
+  - at_sim_minute: 155
+    label: "Policy Lab: intern model-downgrade draft"
+    note: 21% projected savings, 3 legitimate blocks.
+
+  - at_sim_minute: 170
+    label: CEO view
+    note: Spend, waste prevented, blocked, approvals.
+
+  - at_sim_minute: 180
+    label: Close
+    note: >
+      This isn't a scripted dashboard. It's a digital enterprise generating
+      exactly the telemetry AgentShield would receive from real coding agents
+      -- and the same gates are already listening on an HTTP endpoint for the
+      real ones.
+
+# The decoys. Both exist so a detector cannot win by flagging any anomaly at
+# all, and the evaluation harness counts a hit on either as a false positive.
+decoys:
+  - kind: sloppy_intern
+    employee: emp_014
+    note: High mistake rate, retry loops, burns budget. Entirely innocent.
+
+  - kind: release_week
+    sim_days: [9, 10]
+    note: DevOps and seniors genuinely spike. Flagging them is a false positive.

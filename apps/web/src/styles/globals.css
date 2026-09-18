@@ -1,0 +1,136 @@
+@import "tailwindcss";
+
+/* ────────────────────────────────────────────────────────────────────
+   Design tokens -- 04-UI-UX-BRIEF.md section 2.
+
+   The rule this whole file exists to enforce: a colour in AgentShield is a
+   statement about the system's state, never about the interface's mood.
+   Four decisions, four colours, used nowhere else. If a colour appears that
+   is not a decision, a risk level, money or ink, it is a bug.
+   ──────────────────────────────────────────────────────────────────── */
+
+@theme {
+  /* ── Ink: the console surface ─────────────────────────── */
+  --color-ink-950: #080D16;   /* canvas letterbox, office backdrop */
+  --color-ink-900: #0D1420;   /* page background */
+  --color-ink-800: #141E2E;   /* panels, cards, table body */
+  --color-ink-700: #1C293C;   /* raised: hover, nested, header */
+  --color-ink-600: #27374E;   /* pressed, selected row */
+  --color-line:        #253248;
+  --color-line-strong: #33455F;
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --color-text:       #E6EDF7;
+  --color-text-dim:   #93A4BD;
+  --color-text-faint: #5C6E89;
+
+  /* ── Brand ────────────────────────────────────────────── */
+  --color-shield:        #3D7BFF;
+  --color-shield-hover:  #2F66E0;
+  --color-shield-subtle: #3D7BFF1F;
+
+  /* ── Decision signals: the only semantic colours ──────── */
+  --color-allow:         #3FCF8E;
+  --color-allow-subtle:  #3FCF8E1F;
+  --color-redact:        #A855F7;
+  --color-redact-subtle: #A855F71F;
+  --color-review:        #F2A73B;
+  --color-review-subtle: #F2A73B1F;
+  --color-block:         #E5484D;
+  --color-block-subtle:  #E5484D1F;
+
+  /* ── Detector + money ─────────────────────────────────── */
+  --color-anomaly:        #E668C3;   /* the ML flagged it; nothing else uses this */
+  --color-anomaly-subtle: #E668C31F;
+  --color-spend:          #E8C468;   /* every currency figure */
+  --color-idle:           #64748B;   /* no activity */
+
+  /* ── Risk ramp (0→100) ────────────────────────────────── */
+  --color-risk-0:   #3FCF8E;
+  --color-risk-40:  #F2A73B;
+  --color-risk-70:  #E5484D;
+  --color-risk-90:  #E668C3;
+
+  /* ── Type ─────────────────────────────────────────────── */
+  --font-ui:    "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-mono:  "IBM Plex Mono", ui-monospace, "SF Mono", monospace;
+  --font-pixel: "Departure Mono", "Silkscreen", ui-monospace, monospace;
+
+  /* ── Radius ───────────────────────────────────────────── */
+  --radius-none: 0px;      /* office HUD -- pixel surfaces are never rounded */
+  --radius-xs:   2px;      /* chips, badges */
+  --radius-sm:   4px;      /* inputs, buttons */
+  --radius-md:   6px;      /* cards, panels */
+  --radius-lg:   10px;     /* dialogs, drawers */
+
+  /* ── Elevation ────────────────────────────────────────── */
+  --shadow-panel:  0 1px 0 0 #ffffff08 inset, 0 1px 2px #00000040;
+  --shadow-raised: 0 4px 12px #00000059;
+  --shadow-drawer: -8px 0 32px #00000073;
+  --shadow-dialog: 0 16px 48px #00000080;
+  --shadow-focus:  0 0 0 2px var(--color-ink-900), 0 0 0 4px var(--color-shield);
+}
+
+@font-face {
+  font-family: "Departure Mono";
+  src: url("/fonts/DepartureMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@layer base {
+  :root { color-scheme: dark; }
+
+  html, body, #root { height: 100%; }
+
+  body {
+    background-color: var(--color-ink-900);
+    color: var(--color-text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    line-height: 20px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Data never shimmers as it updates */
+  .font-mono, table, input[type="number"] { font-variant-numeric: tabular-nums; }
+
+  /* Pixel surfaces must not be smoothed */
+  canvas { image-rendering: pixelated; }
+
+  ::selection { background: var(--color-shield-subtle); color: var(--color-text); }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--color-ink-900); }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-600);
+    border: 2px solid var(--color-ink-900);
+    border-radius: 6px;
+  }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-line-strong); }
+}
+
+@layer utilities {
+  .hatched {
+    background-image: repeating-linear-gradient(
+      135deg, transparent, transparent 3px, #ffffff14 3px, #ffffff14 6px);
+  }
+}
+
+@keyframes rowflash { from { background-color: var(--color-shield-subtle) } to { background-color: transparent } }
+@keyframes drawerin { from { transform: translateX(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes dialogin { from { transform: translate(-50%,-50%) scale(.98); opacity: 0 } to { transform: translate(-50%,-50%) scale(1); opacity: 1 } }
+@keyframes toastin  { from { transform: translateX(12px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes fadein   { from { opacity: 0 } to { opacity: 1 } }
+@keyframes badgepulse { 0%,100% { transform: scale(1) } 50% { transform: scale(1.12) } }
+
+/* Nothing animates on load. Nothing loops. Nothing animates because it is
+   pretty. The office canvas honours this too -- 07-OFFICE-SIMULATION.md
+   section 10.6 -- by disabling tweens while keeping every state change. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
