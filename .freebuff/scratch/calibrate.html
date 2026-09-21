@@ -1,0 +1,110 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { background: #0d0f14; margin: 8px; font-family: monospace; color: #9aa4b2; font-size: 11px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .cell { position: relative; }
+  canvas { image-rendering: pixelated; border: 1px solid #1e2735; }
+  h3 { color: #d7dee8; margin: 6px 0 2px; }
+</style>
+</head>
+<body>
+<div id="info">calibration overlay — cyan: tile grid · yellow: wall regions · red: extractor footprints · green dots: employees/chairs</div>
+<div class="row" id="rooms"></div>
+<script type="module">
+const ROOMS = [
+  { id: 'ceo_office', o: [2, 2], s: [10, 8], cal: [408, 153] },
+  { id: 'managers', o: [13.66, 8.91], s: [12, 7], cal: [308, 134] },
+  { id: 'dev_floor', o: [29.47, 1.84], s: [20, 20], cal: [724, 134] },
+  { id: 'devops', o: [6.41, 20.47], s: [10, 8], cal: [268, 223] },
+  { id: 'meeting_room', o: [19.72, 22.84], s: [16, 12], cal: [468, 134] },
+];
+const EMP = {
+  ceo_office: [[6,5]],
+  managers: [[19.66,14.91],[20.66,11.91]],
+  dev_floor: [[32.47,4.84],[36.47,4.84],[40.47,4.84],[44.47,4.84],[32.47,9.84],[36.47,9.84],[40.47,9.84],[44.47,9.84],[32.47,14.84],[36.47,14.84],[40.47,14.84],[44.47,14.84]],
+  devops: [[10.41,23.47]],
+  meeting_room: [[23.72,26.84],[27.72,26.84],[23.72,30.84],[27.72,30.84]],
+};
+const FOOT = await (await fetch('./footprints.json')).json();
+
+const TW = 64, TH = 32, WALL_H = 62;
+const iso = (tx, ty) => [(tx - ty) * (TW / 2), (tx + ty) * (TH / 2)];
+
+for (const room of ROOMS) {
+  const img = new Image();
+  img.src = `./rooms/${room.id}.png`;
+  await img.decode();
+
+  const cv = document.createElement('canvas');
+  cv.width = img.width; cv.height = img.height;
+  const c = cv.getContext('2d');
+  c.drawImage(img, 0, 0);
+
+  const [ox, oy] = room.o;
+  const [bx, by] = iso(ox, oy);
+  const originX = bx - bx + room.cal[0]; // iso(ox,oy).x - iso(ox,oy).x + cal? need base
+  // world->image: imageX = worldX - iso(ox,oy).x + cal[0]
+  const base = iso(ox, oy);
+  const w2i = (wx, wy) => [wx - base[0] + room.cal[0], wy - base[1] + room.cal[1]];
+
+  // tile grid
+  c.strokeStyle = 'rgba(80,220,255,0.5)';
+  c.lineWidth = 1;
+  for (let j = 0; j < room.s[1]; j++) {
+    for (let i = 0; i < room.s[0]; i++) {
+      const p = w2i(...iso(ox + i, oy + j));
+      const q = w2i(...iso(ox + i + 1, oy + j));
+      const r = w2i(...iso(ox + i + 1, oy + j + 1));
+      const s = w2i(...iso(ox + i, oy + j + 1));
+      c.beginPath();
+      c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); c.lineTo(r[0], r[1]); c.lineTo(s[0], s[1]);
+      c.closePath(); c.stroke();
+    }
+  }
+
+  // wall regions
+  c.strokeStyle = 'rgba(255,220,60,0.9)';
+  const P1 = w2i(...iso(ox - 1, oy - 1));
+  const P2 = w2i(...iso(ox + room.s[0], oy - 1));
+  const P3 = w2i(...iso(ox - 1, oy + room.s[1]));
+  for (const [A, B] of [[P1, P2], [P1, P3]]) {
+    c.beginPath();
+    c.moveTo(A[0], A[1]); c.lineTo(B[0], B[1]);
+    c.lineTo(B[0], B[1] - WALL_H); c.lineTo(A[0], A[1] - WALL_H);
+    c.closePath(); c.stroke();
+  }
+
+  // footprints
+  c.fillStyle = 'rgba(229,72,77,0.4)';
+  for (const [x, y, w, d] of (FOOT[room.id] ?? [])) {
+    const P = w2i(...iso(ox + x, oy + y));
+    const Q = w2i(...iso(ox + x + w, oy + y));
+    const R = w2i(...iso(ox + x + w, oy + y + d));
+    const S = w2i(...iso(ox + x, oy + y + d));
+    c.beginPath();
+    c.moveTo(P[0], P[1]); c.lineTo(Q[0], Q[1]); c.lineTo(R[0], R[1]); c.lineTo(S[0], S[1]);
+    c.closePath(); c.fill();
+    c.strokeStyle = 'rgba(229,72,77,0.9)'; c.stroke();
+  }
+
+  // employees
+  c.fillStyle = '#3FCF8E';
+  for (const [gx, gy] of (EMP[room.id] ?? [])) {
+    const p = w2i(...iso(gx, gy));
+    c.beginPath(); c.arc(p[0], p[1], 5, 0, Math.PI * 2); c.fill();
+  }
+
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  const h3 = document.createElement('h3');
+  h3.textContent = room.id;
+  cell.append(h3, cv);
+  document.getElementById('rooms').append(cell);
+}
+document.title = 'calibration ready';
+</script>
+</body>
+</html>

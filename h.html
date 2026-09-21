@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgentShield — Office</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --ink-950:#080D16; --ink-900:#0D1420; --ink-800:#141E2E;
+  --ink-700:#1C293C; --ink-600:#27374E;
+  --line:#253248; --line-strong:#33455F;
+  --text:#E6EDF7; --text-dim:#93A4BD; --text-faint:#5C6E89;
+  --shield:#3D7BFF; --shield-hover:#2F66E0; --shield-subtle:#3D7BFF1F;
+  --allow:#3FCF8E;  --allow-subtle:#3FCF8E1F;
+  --redact:#A855F7; --redact-subtle:#A855F71F;
+  --review:#F2A73B; --review-subtle:#F2A73B1F;
+  --block:#E5484D;  --block-subtle:#E5484D1F;
+  --anomaly:#E668C3; --anomaly-subtle:#E668C31F;
+  --spend:#E8C468; --idle:#64748B;
+  --risk-0:#3FCF8E; --risk-40:#F2A73B; --risk-70:#E5484D; --risk-90:#E668C3;
+  --font-ui:"Archivo",ui-sans-serif,system-ui,sans-serif;
+  --font-mono:"IBM Plex Mono",ui-monospace,"SF Mono",monospace;
+  --font-pixel:"Silkscreen","Departure Mono",ui-monospace,monospace;
+  --shadow-panel:0 1px 0 0 #ffffff08 inset,0 1px 2px #00000040;
+  --shadow-raised:0 4px 12px #00000059;
+  --shadow-drawer:-8px 0 32px #00000073;
+  --shadow-dialog:0 16px 48px #00000080;
+  --shadow-focus:0 0 0 2px var(--ink-900),0 0 0 4px var(--shield);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ color-scheme:dark; } }
+:root[data-theme="dark"]{ color-scheme:dark; }
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--ink-900); color:var(--text);
+  font-family:var(--font-ui); font-size:13px; line-height:20px;
+  -webkit-font-smoothing:antialiased; overflow:hidden;
+}
+.mono{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.pixel{font-family:var(--font-pixel);letter-spacing:.02em}
+canvas{image-rendering:pixelated}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+:focus-visible{outline:none;box-shadow:var(--shadow-focus)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--ink-900)}
+::-webkit-scrollbar-thumb{background:var(--ink-600);border:2px solid var(--ink-900);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:var(--line-strong)}
+
+#app{display:flex;flex-direction:column;height:100%}
+header.shell{
+  height:56px;flex:0 0 56px;display:flex;align-items:center;gap:4px;
+  padding:0 16px;background:var(--ink-800);border-bottom:1px solid var(--line);
+  position:relative;z-index:30;
+}
+.mark{width:26px;height:26px;border-radius:4px;background:var(--shield-subtle);
+  display:grid;place-items:center;color:var(--shield);margin-right:10px;flex:0 0 auto}
+.nav{display:flex;align-items:center;gap:2px}
+.nav button{
+  position:relative;height:56px;padding:0 12px;display:inline-flex;align-items:center;gap:7px;
+  font-size:13px;color:var(--text-dim);transition:color .1s;letter-spacing:.01em;
+}
+.nav button:hover{color:var(--text)}
+.nav button[aria-current="page"]{color:var(--text);font-weight:500}
+.nav button[aria-current="page"]::after{
+  content:"";position:absolute;left:12px;right:12px;bottom:0;height:2px;background:var(--shield);
+}
+.spacer{flex:1}
+.pill{
+  height:28px;display:inline-flex;align-items:center;gap:8px;padding:0 10px;border-radius:4px;
+  background:var(--ink-900);border:1px solid var(--line);
+  font-family:var(--font-mono);font-size:11px;color:var(--text-dim);font-variant-numeric:tabular-nums;
+}
+.pill b{color:var(--text);font-weight:500}
+.clock{
+  height:28px;display:inline-flex;align-items:center;gap:8px;padding:0 10px;border-radius:4px;
+  background:var(--ink-950);border:1px solid var(--line);
+  font-family:var(--font-pixel);font-size:12px;color:var(--text);
+}
+.clock .mult{color:var(--review);font-size:10px}
+.seg{display:inline-flex;align-items:center;gap:2px;padding:2px;border-radius:4px;
+  background:var(--ink-900);border:1px solid var(--line)}
+.seg button{height:26px;padding:0 9px;border-radius:2px;font-size:12px;color:var(--text-dim);
+  display:inline-flex;align-items:center;gap:5px;transition:color .1s,background .1s}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--ink-600);color:var(--text);font-weight:500}
+.seg button.on.pause{color:var(--block)}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--allow);box-shadow:0 0 0 3px var(--allow-subtle)}
+.bell{position:relative;height:32px;width:32px;border-radius:4px;display:grid;place-items:center;color:var(--text-dim)}
+.bell:hover{background:var(--ink-700);color:var(--text)}
+.bell span{
+  position:absolute;top:2px;right:0;min-width:15px;height:15px;padding:0 4px;border-radius:8px;
+  background:var(--review);color:var(--ink-950);font-family:var(--font-mono);font-size:10px;
+  font-weight:600;display:grid;place-items:center;line-height:1;
+}
+.bell.bump span{animation:badgepulse 240ms ease-out}
+select.role{
+  height:28px;padding:0 26px 0 9px;border-radius:4px;background:var(--ink-900);
+  border:1px solid var(--line);color:var(--text);font-size:12px;appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--text-faint) 50%),
+                   linear-gradient(135deg,var(--text-faint) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 12px,calc(100% - 9px) 12px;
+  background-size:5px 5px,5px 5px;background-repeat:no-repeat;
+}
+
+.body{flex:1;display:flex;min-height:0}
+.stage{position:relative;flex:1;min-width:0;background:var(--ink-950);overflow:hidden}
+#office{display:block;width:100%;height:100%;cursor:grab}
+#office.drag{cursor:grabbing}
+#hud{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+.plate{
+  position:absolute;transform-origin:0 0;will-change:transform;
+  display:flex;align-items:center;gap:0;white-space:nowrap;
+  background:rgba(13,20,32,.88);border:1px solid var(--line);
+  font-family:var(--font-pixel);font-size:11px;line-height:1;
+  padding:0;pointer-events:auto;cursor:pointer;
+}
+.plate .seg1{display:flex;align-items:center;gap:5px;padding:4px 7px}
+.plate .seg2{display:flex;align-items:center;gap:4px;padding:4px 7px;border-left:1px solid var(--line);color:var(--text-dim);font-size:10px}
+.plate .sd{width:6px;height:6px;border-radius:50%;background:var(--idle)}
+.plate.idle{opacity:.45}
+.plate.hidden{display:none}
+.pillx{
+  position:absolute;transform-origin:0 0;will-change:transform;white-space:nowrap;
+  font-family:var(--font-pixel);font-size:10px;line-height:1;padding:4px 7px;
+  display:flex;align-items:center;gap:5px;border:1px solid;
+}
+.pillx.review{background:var(--review-subtle);border-color:var(--review);color:var(--review)}
+.pillx.block{background:var(--block-subtle);border-color:var(--block);color:var(--block)}
+.pillx.allow{background:var(--allow-subtle);border-color:var(--allow);color:var(--allow)}
+.pillx.anomaly{background:var(--anomaly-subtle);border-color:var(--anomaly);color:var(--anomaly)}
+.pillx.hidden{display:none}
+.bubble{
+  position:absolute;transform-origin:0 0;white-space:nowrap;
+  background:var(--ink-800);border:1px solid var(--line-strong);
+  font-family:var(--font-pixel);font-size:10px;padding:5px 8px;color:var(--text);
+}
+.bubble::after{content:"";position:absolute;left:10px;bottom:-5px;width:8px;height:5px;background:var(--ink-800)}
+
+#clickcard{
+  position:absolute;width:250px;background:rgba(13,20,32,.96);border:1px solid var(--line-strong);
+  box-shadow:var(--shadow-raised);font-family:var(--font-pixel);pointer-events:auto;display:none;
+}
+#clickcard .ch{display:flex;gap:7px;padding:9px 10px;border-bottom:1px solid var(--line)}
+#clickcard .ch .nm{font-size:12px;color:var(--text)}
+#clickcard .ch .ro{font-size:10px;color:var(--text-dim);margin-top:3px}
+#clickcard .cb{padding:9px 10px}
+#clickcard .cb .k{font-size:10px;letter-spacing:.04em}
+#clickcard .cb .v{font-size:10px;color:var(--text-dim);margin-top:5px;line-height:15px;white-space:normal}
+
+.zoomctl{position:absolute;left:16px;bottom:16px;display:flex;gap:2px;
+  background:var(--ink-800);border:1px solid var(--line);border-radius:4px;padding:2px;box-shadow:var(--shadow-panel)}
+.zoomctl button{width:28px;height:28px;border-radius:2px;color:var(--text-dim);display:grid;place-items:center;font-size:14px}
+.zoomctl button:hover{background:var(--ink-700);color:var(--text)}
+.zoomctl button.wide{width:auto;padding:0 10px;font-size:12px}
+.legend{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:16px;display:flex;gap:16px;
+  background:rgba(13,20,32,.82);border:1px solid var(--line);border-radius:4px;padding:6px 12px;
+  font-size:11px;color:var(--text-dim);
+}
+.legend i{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:6px}
+.viewtoggle{position:absolute;right:16px;bottom:16px;height:30px;padding:0 11px;border-radius:4px;
+  background:var(--ink-800);border:1px solid var(--line);color:var(--text-dim);font-size:12px;
+  display:inline-flex;align-items:center;gap:7px}
+.viewtoggle:hover{color:var(--text);border-color:var(--line-strong)}
+
+.overlay{position:absolute;inset:0;display:none;place-items:center;background:rgba(8,13,22,.72);z-index:12}
+.overlay.on{display:grid}
+.pausedchip{font-family:var(--font-pixel);font-size:16px;color:var(--text);
+  background:var(--ink-800);border:1px solid var(--line-strong);padding:10px 18px}
+.ffbox{width:420px;text-align:center;font-family:var(--font-pixel);color:var(--text)}
+.ffbox h3{font-size:15px;font-weight:400;letter-spacing:.06em;margin-bottom:18px}
+.ffbar{height:14px;background:var(--ink-800);border:1px solid var(--line-strong);overflow:hidden}
+.ffbar i{display:block;height:100%;width:0;background:var(--shield);transition:width .25s linear}
+.ffmeta{margin-top:12px;font-size:11px;color:var(--text-dim)}
+.ffsum{width:360px;background:var(--ink-800);border:1px solid var(--line-strong);
+  box-shadow:var(--shadow-dialog);padding:20px;font-family:var(--font-pixel)}
+.ffsum h3{font-size:13px;font-weight:400;letter-spacing:.06em;text-align:center;margin-bottom:16px}
+.ffsum dl{display:grid;grid-template-columns:auto 1fr;gap:9px 14px;border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);padding:14px 0;font-size:11px}
+.ffsum dt{color:var(--text);text-align:right;font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.ffsum dd{color:var(--text-dim)}
+.ffsum .acts{display:flex;gap:8px;justify-content:center;margin-top:16px}
+
+.log{
+  width:340px;flex:0 0 340px;background:var(--ink-800);border-left:1px solid var(--line);
+  display:flex;flex-direction:column;min-height:0;
+}
+.log h2{height:40px;flex:0 0 40px;display:flex;align-items:center;justify-content:center;
+  border-bottom:1px solid var(--line);font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--text-dim)}
+.loglines{flex:1;overflow-y:auto;padding:6px 0}
+.logline{padding:5px 12px;font-family:var(--font-mono);font-size:11px;line-height:18px;
+  color:var(--text-dim);cursor:pointer;border-left:2px solid transparent}
+.logline:hover{background:rgba(28,41,60,.5);border-left-color:var(--line-strong)}
+.logline .t{color:var(--text-faint)}
+.logline .allow{color:var(--allow);font-weight:500}
+.logline .block{color:var(--block);font-weight:500}
+.logline .review{color:var(--review);font-weight:500}
+.logline .redact{color:var(--redact);font-weight:500}
+.logline .anomaly{color:var(--anomaly);font-weight:500}
+.logline .money{color:var(--spend)}
+.logempty{padding:24px 16px;text-align:center;color:var(--text-faint);font-size:12px}
+
+#drawer{
+  position:fixed;right:0;top:56px;bottom:0;width:420px;z-index:40;
+  background:var(--ink-800);border-left:1px solid var(--line);box-shadow:var(--shadow-drawer);
+  overflow-y:auto;display:none;
+}
+#drawer.on{display:block;animation:drawerin 180ms cubic-bezier(.16,1,.3,1)}
+.dh{display:flex;gap:12px;padding:20px;align-items:flex-start}
+.dh .av{width:44px;height:52px;flex:0 0 44px;background:var(--ink-700);border:1px solid var(--line)}
+.dh h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.dh p{font-size:12px;color:var(--text-dim);margin-top:3px}
+.dh .agent{font-size:11px;color:var(--text-faint);margin-top:2px}
+.dh .x{margin-left:auto;width:28px;height:28px;border-radius:4px;display:grid;place-items:center;color:var(--text-dim)}
+.dh .x:hover{background:var(--ink-700);color:var(--text)}
+.sect{padding:16px 20px;border-top:1px solid var(--line)}
+.sect .lbl{font-size:11px;font-weight:500;color:var(--text-faint);margin-bottom:12px}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
+.kv .n{font-family:var(--font-mono);font-size:17px;font-variant-numeric:tabular-nums;color:var(--text)}
+.kv .n.money{color:var(--spend)}
+.kv .k{font-size:11px;color:var(--text-faint);margin-top:2px}
+.split{display:flex;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.split span{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.split span i{font-style:normal;color:var(--text-faint);margin-right:5px;font-family:var(--font-ui);font-size:11px}
+.meterrow{display:flex;align-items:center;gap:10px}
+.meter{height:6px;flex:1;max-width:160px;background:var(--ink-700);border-radius:2px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:2px;transition:width .3s ease-out}
+.meterrow .num{font-family:var(--font-mono);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
+.meterrow .conf{font-size:11px;color:var(--text-faint);margin-left:auto}
+.factors{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+.factors li{list-style:none;font-size:12px;color:var(--text-dim);display:flex;gap:8px}
+.factors li::before{content:"·";color:var(--text-faint)}
+.task .title{font-size:13px;font-weight:500}
+.task .meta{font-family:var(--font-mono);font-size:11px;color:var(--text-dim);margin-top:4px}
+.statebox{margin-top:12px;padding:10px 12px;border-radius:4px;font-size:12px}
+.statebox.review{background:var(--review-subtle);border:1px solid rgba(242,167,59,.35);color:var(--review)}
+.statebox.block{background:var(--block-subtle);border:1px solid rgba(229,72,77,.35);color:var(--block)}
+.statebox.allow{background:var(--allow-subtle);border:1px solid rgba(63,207,142,.35);color:var(--allow)}
+.statebox p{color:var(--text-dim);margin-top:5px;font-size:12px}
+.dec{display:flex;align-items:center;gap:10px;padding:6px 0;font-family:var(--font-mono);font-size:11px}
+.dec .t{color:var(--text-faint);width:40px;flex:0 0 40px}
+.dec .w{flex:1;color:var(--text-dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:2px;border:1px solid;
+  font-family:var(--font-mono);font-size:10px;line-height:1;font-weight:500;letter-spacing:.04em}
+.chip.allow{background:var(--allow-subtle);color:var(--allow);border-color:rgba(63,207,142,.3)}
+.chip.block{background:var(--block-subtle);color:var(--block);border-color:rgba(229,72,77,.3)}
+.chip.review{background:var(--review-subtle);color:var(--review);border-color:rgba(242,167,59,.3)}
+.chip.redact{background:var(--redact-subtle);color:var(--redact);border-color:rgba(168,85,247,.3)}
+.btn{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:4px;
+  background:var(--ink-700);color:var(--text);border:1px solid var(--line);font-size:13px;font-weight:500;
+  transition:background .1s,border-color .1s}
+.btn:hover{background:var(--ink-600);border-color:var(--line-strong)}
+.btn.primary{background:var(--shield);border-color:var(--shield);color:#fff}
+.btn.primary:hover{background:var(--shield-hover)}
+.btn:active{transform:translateY(1px)}
+.btnrow{display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--line)}
+
+#grid{position:absolute;inset:0;background:var(--ink-900);overflow-y:auto;padding:24px;display:none}
+#grid.on{display:block}
+.gridwrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;max-width:1400px;margin:0 auto}
+.gcard{background:var(--ink-800);border:1px solid var(--line);border-radius:6px;padding:14px;
+  text-align:left;transition:border-color .1s}
+.gcard:hover{border-color:var(--line-strong)}
+.gcard .nm{font-size:13px;font-weight:500}
+.gcard .ro{font-size:11px;color:var(--text-dim);margin-top:2px}
+.gcard .tm{font-size:11px;color:var(--text-faint)}
+.gcard .st{margin-top:12px;display:flex;align-items:center;gap:6px;font-family:var(--font-mono);font-size:11px}
+.gcard .rk{margin-top:9px;display:flex;align-items:center;gap:8px}
+
+.toowide{position:fixed;inset:0;z-index:90;display:none;place-items:center;background:var(--ink-900);text-align:center;padding:40px}
+@media (max-width:1023px){ .toowide{display:grid} }
+
+@keyframes drawerin{from{transform:translateX(16px);opacity:0}to{transform:none;opacity:1}}
+@keyframes badgepulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="shell">
+    <div class="mark" aria-hidden="true">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2 4 6v6c0 5 3.4 9.4 8 10 4.6-.6 8-5 8-10V6l-8-4z"/></svg>
+    </div>
+    <nav class="nav">
+      <button aria-current="page">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M9 13h2M13 9h2M13 13h2M9 21v-4h6v4"/></svg>
+        Office</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h3l2 6 4-14 2 8h5"/></svg>
+        Live feed</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4M12 3l7 4v5c0 4.4-3 8.3-7 9-4-.7-7-4.6-7-9V7l7-4z"/></svg>
+        Approvals</button>
+      <button>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1A1.7 1.7 0 0 0 7 19.4a1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.7 1.7 0 0 0 3 15a2 2 0 0 1-2-2 2 2 0 0 1 2-2 1.7 1.7 0 0 0 1.5-2.6l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.7 1.7 0 0 0 9 3a2 2 0 0 1 4 0 1.7 1.7 0 0 0 2.6 1.5l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.7 1.7 0 0 0 21 11a2 2 0 0 1 0 4 1.7 1.7 0 0 0-1.6 1z"/></svg>
+        Control center</button>
+    </nav>
+
+    <div class="spacer"></div>
+
+    <div class="pill" title="Active simulation run">run_7f3a<b id="simday">day 14</b></div>
+    <div class="clock" style="margin-left:8px"><span id="simclock">Tue 09:15</span><span class="mult" id="simmult"></span></div>
+
+    <div class="seg" style="margin-left:8px" role="group" aria-label="Simulation speed">
+      <button data-speed="1" class="on">▶ Real time</button>
+      <button data-speed="10">▶▶ 10×</button>
+      <button data-speed="100">▶▶▶ 100×</button>
+      <button data-speed="0" class="pause">❙❙ Pause</button>
+    </div>
+
+    <div style="margin-left:12px;display:flex;align-items:center;gap:10px">
+      <span class="dot" id="conn" title="Connected to /ws/stream"></span>
+      <button class="bell" id="bell" title="Pending approvals">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        <span id="bellcount">2</span>
+      </button>
+      <select class="role" aria-label="View as">
+        <option>Security admin</option><option>Manager</option><option>CEO</option><option>Engineer</option>
+      </select>
+    </div>
+  </header>
+
+  <div class="body">
+    <div class="stage" id="stage">
+      <canvas id="office" role="img" aria-label="Office floor"></canvas>
+      <div id="hud"></div>
+
+      <div id="clickcard">
+        <div class="ch">
+          <span id="ccicon" style="color:var(--review)">⚠</span>
+          <div><div class="nm" id="ccname">Rahul</div><div class="ro" id="ccrole">Engineering Intern</div></div>
+        </div>
+        <div class="cb"><div class="k" id="cck" style="color:var(--review)">WAITING FOR APPROVAL</div>
+          <div class="v" id="ccv">Agent attempted production deployment.</div></div>
+      </div>
+
+      <div class="zoomctl">
+        <button id="zout" title="Zoom out">−</button>
+        <button id="zin" title="Zoom in">+</button>
+        <button id="zfit" class="wide" title="Fit the floor">Fit</button>
+      </div>
+
+      <div class="legend" aria-hidden="true">
+        <span><i style="background:var(--allow)"></i>Working</span>
+        <span><i style="background:var(--review)"></i>Waiting approval</span>
+        <span><i style="background:var(--block)"></i>Blocked</span>
+        <span><i style="background:var(--idle)"></i>Idle</span>
+        <span><i style="background:var(--anomaly)"></i>Flagged</span>
+      </div>
+
+      <button class="viewtoggle" id="viewtoggle">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Simple view
+      </button>
+
+      <div class="overlay" id="pausedOverlay"><div class="pausedchip">PAUSED</div></div>
+
+      <div class="overlay" id="ffOverlay">
+        <div class="ffbox" id="ffProgress">
+          <h3>SIMULATING 7 DAYS</h3>
+          <div class="ffbar"><i id="ffbar"></i></div>
+          <div class="ffmeta"><span id="ffday">day 1 of 7</span> · <span id="ffevents">0 events generated</span></div>
+        </div>
+        <div class="ffsum" id="ffSummary" style="display:none">
+          <h3>SIMULATION COMPLETE</h3>
+          <dl>
+            <dt>2,413</dt><dd>agent requests</dd>
+            <dt>2.1M</dt><dd>tokens</dd>
+            <dt>47</dt><dd>blocked actions</dd>
+            <dt>18</dt><dd>approvals</dd>
+            <dt style="color:var(--spend)">$92</dt><dd>avoidable spend identified</dd>
+            <dt style="color:var(--anomaly)">3</dt><dd>behavioural anomalies</dd>
+          </dl>
+          <div class="acts">
+            <button class="btn">View incidents</button>
+            <button class="btn primary" id="ffback">Back to the office</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="grid"><div class="gridwrap" id="gridwrap"></div></div>
+    </div>
+
+    <aside class="log">
+      <h2>SYSTEM LOG</h2>
+      <div class="loglines" id="loglines" aria-live="polite" aria-relevant="additions">
+        <div class="logempty" id="logempty">Waiting for the first request.<br>Press ▶ Real time to start.</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<aside id="drawer" aria-label="Employee detail">
+  <div class="dh">
+    <canvas class="av" id="dav" width="44" height="52"></canvas>
+    <div><h3 id="dname">—</h3><p id="drole">—</p><p class="agent" id="dagent">—</p></div>
+    <button class="x" id="dclose" aria-label="Close">✕</button>
+  </div>
+
+  <div class="sect">
+    <div class="lbl">Today</div>
+    <div class="grid4">
+      <div class="kv"><div class="n" id="dreq">0</div><div class="k">Requests</div></div>
+      <div class="kv"><div class="n" id="dtok">0</div><div class="k">Tokens</div></div>
+      <div class="kv"><div class="n money" id="dcost">$0.00</div><div class="k">Cost</div></div>
+      <div class="kv"><div class="n" id="dses">0</div><div class="k">Sessions</div></div>
+    </div>
+    <div class="split">
+      <span><i>Allowed</i><b id="dallow">0</b></span>
+      <span><i>Blocked</i><b id="dblock">0</b></span>
+      <span><i>Review</i><b id="dreview">0</b></span>
+    </div>
+  </div>
+
+  <div class="sect">
+    <div class="lbl">Risk</div>
+    <div class="meterrow">
+      <div class="meter"><i id="dmeter"></i></div>
+      <span class="num" id="dscore">0</span><span style="color:var(--text-faint);font-size:11px">/100</span>
+      <span class="conf" id="dconf">normal confidence</span>
+    </div>
+    <ul class="factors" id="dfactors"></ul>
+    <div style="margin-top:14px;display:flex;justify-content:flex-end">
+      <button class="btn">Explain risk</button>
+    </div>
+  </div>
+
+  <div class="sect task">
+    <div class="lbl">Current task</div>
+    <div class="title" id="dtask">Nothing in progress.</div>
+    <div class="meta" id="dtaskmeta"></div>
+    <div id="dstate"></div>
+  </div>
+
+  <div class="sect">
+    <div class="lbl">Recent decisions</div>
+    <div id="ddecisions"></div>
+  </div>
+
+  <div class="btnrow"><button class="btn" style="flex:1;justify-content:center">View full activity</button></div>
+</aside>
+
+<div class="toowide">
+  <div>
+    <p style="font-size:15px;font-weight:600">AgentShield needs a wider window.</p>
+    <p style="color:var(--text-dim);margin-top:6px">The office floor needs at least 1024px. This window is <span id="curw" class="mono"></span>.</p>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ═══════════════════════════════════════════════════════════════
+   1. ISOMETRIC MATHS
+   ═══════════════════════════════════════════════════════════════ */
+const TW = 64, TH = 32;
+const iso   = (tx, ty) => ({ x: (tx - ty) * (TW / 2), y: (tx + ty) * (TH / 2) });
+const depth = (tx, ty, layer = 0) => (tx + ty) * 10 + layer;
+
+/* ═══════════════════════════════════════════════════════════════
+   2. FLOOR PLAN
+   ═══════════════════════════════════════════════════════════════ */
+const WALL_H = 62;
+
+const ROOMS = [
+  { id:'ceo_office',   label:'CEO OFFICE',         o:[2,2],   s:[10,8],  floor:['#9C7B50','#93744B'], labelAt:[5.5,8.6] },
+  { id:'managers',     label:'MANAGERS',           o:[18,2],  s:[12,7],  floor:['#4B6578','#456073'], labelAt:[23,8.2] },
+  { id:'dev_floor',    label:'DEVELOPMENT FLOOR',  o:[30,8],  s:[20,20], floor:['#C7B698','#C0AE90'], labelAt:[43.5,20]  },
+  { id:'devops',       label:'DEVOPS',             o:[2,14],  s:[10,8],  floor:['#8C7A66','#857261'], labelAt:[5.5,20.6] },
+  { id:'meeting_room', label:'MEETING ROOM',       o:[8,26],  s:[16,12], floor:['#53718B','#4D6B85'], labelAt:[14,36.4] },
+];
+
+const BRICK   = ['#8E4C3C','#96523F','#874536','#9A5744','#823F33'];
+const MORTAR  = '#5E3229';
+const SLAB    = '#2B1F1A';
+const SLAB_HI = '#3A2A22';
+
+/* ═══════════════════════════════════════════════════════════════
+   3. THE 20 EMPLOYEES
+   ═══════════════════════════════════════════════════════════════ */
+const SHIRTS = ['#3D6BB5','#4A8A6F','#8E4F6E','#5B5F8C','#A05B3C','#3F7A8E'];
+const SKINS  = ['#C98D63','#E0AE86','#A76B45','#D79C74'];
+const HAIRS  = ['#1E1712','#2C2119','#3E2B1E','#141014'];
+
+const EMPLOYEES = [
+  ['emp_001','Vikram Nair','CEO','exec','internal','ceo_office',[6,5],'e'],
+  ['emp_002','Sara Iyer','Senior Manager','platform','claude_code','managers',[21,5],'e'],
+  ['emp_003','Ben Mathew','Manager','payments','claude_code','managers',[25,5],'e'],
+  ['emp_004','Sarah Khan','Senior Eng.','payments','claude_code','dev_floor',[33,11],'e'],
+  ['emp_005','Arjun Menon','Senior Eng.','platform','codex','dev_floor',[37,11],'e'],
+  ['emp_006','Neha Gupta','Senior Eng.','data','claude_code','dev_floor',[41,11],'e'],
+  ['emp_007','Priya Sharma','Engineer','payments','codex','dev_floor',[45,11],'e'],
+  ['emp_008','Aman Verma','Engineer','payments','codex','dev_floor',[33,16],'e'],
+  ['emp_009','Rohit Das','Engineer','platform','claude_code','dev_floor',[37,16],'e'],
+  ['emp_012','Ananya Roy','Engineer','data','codex','dev_floor',[41,16],'e'],
+  ['emp_013','Rahul Sharma','Engineering Intern','payments','codex','dev_floor',[45,16],'e'],
+  ['emp_014','Ishaan Bose','Engineering Intern','payments','codex','dev_floor',[33,21],'e'],
+  ['emp_017','Nikhil Rao','Engineer','platform','internal','dev_floor',[37,21],'e'],
+  ['emp_018','Zoya Ahmed','Engineering Intern','platform','claude_code','dev_floor',[41,21],'e'],
+  ['emp_020','Lakshmi Iyer','Engineer','data','claude_code','dev_floor',[45,21],'e'],
+  ['emp_019','Mark Dsouza','DevOps','platform','internal','devops',[6,17],'e'],
+  ['emp_010','Meera Pillai','Engineer','frontend','claude_code','meeting_room',[12,30],'s'],
+  ['emp_011','Kabir Shah','Engineer','frontend','mcp','meeting_room',[16,30],'s'],
+  ['emp_015','Tara Nair','Engineering Intern','frontend','claude_code','meeting_room',[12,34],'n'],
+  ['emp_016','Dev Malhotra','Engineering Intern','data','codex','meeting_room',[16,34],'n'],
+].map(([id,name,role,team,agent,room,at,facing], i) => ({
+  id, name, role, team, agent, room, at, facing,
+  first: name.split(' ')[0],
+  shirt: SHIRTS[i % SHIRTS.length],
+  skin:  SKINS[(i * 3) % SKINS.length],
+  hair:  HAIRS[(i * 5) % HAIRS.length],
+  fsm: room === 'meeting_room' ? 'meeting' : 'idle',
+  anomaly: false,
+  risk: [12,18,24,31,27,22,29,34,26,19,61,47,38,21,25,33,17,23,28,30][i],
+  today: { requests:0, tokens:0, cost:0, allowed:0, blocked:0, review:0, sessions:0 },
+  decisions: [],
+  task: null,
+  bubble: null,
+  // motion state — see §6.5
+  pos: { x: at[0], y: at[1] },
+  moving: null,
+  animKind: 'idle',
+  animPhase: Math.random() * 6.28,
+  _nextStroll: 0,
+}));
+const byId = Object.fromEntries(EMPLOYEES.map(e => [e.id, e]));
+
+const PROPS = [];
+const addProp = (type, tx, ty, o = {}) => PROPS.push({ type, tx, ty, ...o });
+
+for (const e of EMPLOYEES) {
+  const [tx, ty] = e.at;
+  if (e.room === 'meeting_room') continue;
+  addProp('chair', tx, ty);
+  addProp('desk',  tx + 1, ty);
+  addProp('monitor', tx + 1, ty, { owner: e.id });
+  addProp('partition', tx + 1.6, ty - 1.1);
+}
+// dev floor extras
+addProp('cooler', 48, 9); addProp('coffee', 48, 10.2); addProp('printer', 31, 26);
+addProp('plant', 49, 26); addProp('plant', 31, 9); addProp('cooler', 49, 19);
+addProp('shelf', 30.2, 13); addProp('shelf', 30.2, 22);
+addProp('cabinet', 30.4, 10.4);
+addProp('lamp', 35, 10); addProp('lamp', 43, 10); addProp('lamp', 35, 19); addProp('lamp', 43, 19);
+// ceo office
+addProp('desk', 7, 5, { big:true }); addProp('monitor', 7, 5, { owner:'emp_001' });
+addProp('plant', 3, 3); addProp('shelf', 3, 8); addProp('plant', 10, 8);
+addProp('lamp', 6, 5);
+// managers
+addProp('shelf', 19, 3); addProp('printer', 28, 3); addProp('plant', 28, 7);
+addProp('lamp', 23, 4);
+// devops
+addProp('rack', 3, 15); addProp('rack', 3, 16.2); addProp('rack', 3, 17.4);
+addProp('shelf', 10, 15); addProp('plant', 10, 20); addProp('printer', 6, 20);
+addProp('cabinet', 9.6, 17);
+// meeting room
+addProp('table', 13.4, 31.4, { big:true });
+addProp('plant', 9, 27); addProp('plant', 22, 36); addProp('board', 22, 28);
+for (const e of EMPLOYEES) if (e.room === 'meeting_room') addProp('chair', e.at[0], e.at[1]);
+
+/* ═══════════════════════════════════════════════════════════════
+   4. STATIC WORLD
+   ═══════════════════════════════════════════════════════════════ */
+let world = null, OX = 0, OY = 0, WW = 0, WH = 0;
+
+function worldBounds() {
+  let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+  for (const r of ROOMS) {
+    const [ox, oy] = r.o, [w, h] = r.s;
+    for (const [a, b] of [[ox-1,oy-1],[ox+w,oy-1],[ox+w,oy+h],[ox-1,oy+h]]) {
+      const p = iso(a, b);
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y - WALL_H); maxY = Math.max(maxY, p.y + 24);
+    }
+  }
+  const pad = 90;
+  return { minX: minX - pad, minY: minY - pad, w: maxX - minX + pad*2, h: maxY - minY + pad*2 };
+}
+
+function quad(c, pts, fill) {
+  c.beginPath(); c.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) c.lineTo(pts[i][0], pts[i][1]);
+  c.closePath(); c.fillStyle = fill; c.fill();
+}
+
+function diamond(c, tx, ty, fill, line) {
+  const p = iso(tx, ty), hx = TW/2, hy = TH/2;
+  quad(c, [[p.x, p.y-hy],[p.x+hx, p.y],[p.x, p.y+hy],[p.x-hx, p.y]], fill);
+  if (line) { c.strokeStyle = line; c.lineWidth = 1; c.stroke(); }
+}
+
+function wallFace(tx, ty, side) {
+  if (side === 'back') { const O = iso(tx, ty + 1); return { O, u: { x: TW/2, y: TH/2 } }; }
+  const O = iso(tx + 1, ty);  return { O, u: { x: -TW/2, y: TH/2 } };
+}
+const onFace = (f, s, t) => [f.O.x + f.u.x * s, f.O.y + f.u.y * s - t];
+
+function tint(hex, k) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (n >> 16 & 255) * k) | 0;
+  const g = Math.min(255, (n >> 8 & 255) * k) | 0;
+  const b = Math.min(255, (n & 255) * k) | 0;
+  return `rgb(${r},${g},${b})`;
+}
+
+function drawWall(c, tx, ty, side) {
+  const f = wallFace(tx, ty, side);
+  const shade = side === 'left' ? 0.82 : 1;
+  quad(c, [onFace(f,0,0), onFace(f,1,0), onFace(f,1,WALL_H), onFace(f,0,WALL_H)], MORTAR);
+  const rows = 7, rh = WALL_H / rows;
+  for (let r = 0; r < rows; r++) {
+    const t0 = r * rh + 1, t1 = (r + 1) * rh - 0.5;
+    const off = (r % 2) ? -0.25 : 0;
+    for (let k = -1; k <= 2; k++) {
+      let s0 = k * 0.5 + off, s1 = s0 + 0.5 - 0.022;
+      s0 = Math.max(0, s0); s1 = Math.min(1, s1);
+      if (s1 <= s0) continue;
+      const pick = BRICK[(Math.abs(tx * 7 + ty * 13 + r * 5 + k * 3)) % BRICK.length];
+      quad(c, [onFace(f,s0,t0), onFace(f,s1,t0), onFace(f,s1,t1), onFace(f,s0,t1)], tint(pick, shade));
+    }
+  }
+  const th = side === 'back' ? [11,-6] : [-11,-6];
+  const a = onFace(f,0,WALL_H), b = onFace(f,1,WALL_H);
+  quad(c, [a, b, [b[0]+th[0], b[1]+th[1]], [a[0]+th[0], a[1]+th[1]]], '#B4705C');
+}
+
+function onWall(c, tx, ty, side, s0, s1, t0, t1, fill, frame) {
+  const f = wallFace(tx, ty, side);
+  const pts = [onFace(f,s0,t0), onFace(f,s1,t0), onFace(f,s1,t1), onFace(f,s0,t1)];
+  if (frame) {
+    const g = 0.06, gt = 3;
+    quad(c, [onFace(f,s0-g,t0-gt), onFace(f,s1+g,t0-gt), onFace(f,s1+g,t1+gt), onFace(f,s0-g,t1+gt)], frame);
+  }
+  quad(c, pts, fill);
+}
+
+function buildWorld() {
+  const b = worldBounds();
+  OX = -b.minX; OY = -b.minY; WW = Math.ceil(b.w); WH = Math.ceil(b.h);
+  world = document.createElement('canvas');
+  world.width = WW; world.height = WH;
+  const c = world.getContext('2d');
+  c.translate(OX, OY);
+  c.imageSmoothingEnabled = false;
+
+  for (const r of ROOMS) {
+    const [ox, oy] = r.o, [w, h] = r.s;
+
+    // 1 — island slab
+    const A = iso(ox, oy+h), B = iso(ox+w, oy+h), C = iso(ox+w, oy);
+    const D = 14;
+    quad(c, [[A.x-TW/2,A.y+TH/2],[B.x,B.y+TH],[B.x,B.y+TH+D],[A.x-TW/2,A.y+TH/2+D]], SLAB);
+    quad(c, [[B.x,B.y+TH],[C.x+TW/2,C.y+TH/2],[C.x+TW/2,C.y+TH/2+D],[B.x,B.y+TH+D]], SLAB_HI);
+
+    // 2 — walls
+    for (let i = -1; i < w; i++) drawWall(c, ox + i, oy - 1, 'back');
+    for (let j = 0; j < h; j++)  drawWall(c, ox - 1, oy + j, 'left');
+    drawWall(c, ox - 1, oy - 1, 'left');
+
+    // 3 — floor
+    for (let i = 0; i < w; i++)
+      for (let j = 0; j < h; j++)
+        diamond(c, ox + i, oy + j, r.floor[(i + j) % 2], 'rgba(0,0,0,.05)');
+
+    // 3b — rug under the meeting table
+    if (r.id === 'meeting_room') {
+      for (let i = 2; i < w - 2; i++)
+        for (let j = 2; j < h - 2; j++)
+          diamond(c, ox + i, oy + j, 'rgba(61,123,255,.13)', null);
+    }
+
+    // 3c — warm pool of light under each desk in this room
+    if (r.id !== 'meeting_room') {
+      for (const e of EMPLOYEES) {
+        if (e.room !== r.id) continue;
+        const gp = iso(e.at[0] + 1, e.at[1]);
+        const g = c.createRadialGradient(gp.x, gp.y - 4, 2, gp.x, gp.y - 4, 32);
+        g.addColorStop(0, 'rgba(255,214,130,.15)');
+        g.addColorStop(1, 'rgba(255,214,130,0)');
+        c.fillStyle = g;
+        c.beginPath(); c.ellipse(gp.x, gp.y - 4, 32, 16, 0, 0, Math.PI * 2); c.fill();
+      }
+    }
+  }
+
+  // wall dressing
+  onWall(c, 4, 1, 'back', .1, .95, 26, 52, '#5B7F96', '#3A2A22');
+  onWall(c, 8, 1, 'back', .1, .95, 24, 50, '#8FB6C9', '#2B1F1A');
+  onWall(c, 21, 1, 'back', .1, .95, 24, 52, '#8FB6C9', '#2B1F1A');
+  onWall(c, 26, 1, 'back', .1, .95, 24, 52, '#8FB6C9', '#2B1F1A');
+  onWall(c, 34, 7, 'back', .1, .95, 24, 52, '#8FB6C9', '#2B1F1A');
+  onWall(c, 42, 7, 'back', .1, .95, 24, 52, '#8FB6C9', '#2B1F1A');
+  onWall(c, 29, 10, 'left', .1, .95, 24, 52, '#E8E4DA', '#2B1F1A');
+  onWall(c, 29, 18, 'left', .1, .95, 26, 50, '#E8E4DA', '#2B1F1A');
+  onWall(c, 1, 13, 'back', .1, .95, 26, 50, '#E8E4DA', '#2B1F1A');
+  onWall(c, 7, 25, 'back', .1, .95, 24, 52, '#E8E4DA', '#2B1F1A');
+  onWall(c, 12, 25, 'back', .1, .95, 24, 52, '#5B7F96', '#2B1F1A');
+
+  c.textAlign = 'center'; c.textBaseline = 'middle';
+  for (const r of ROOMS) {
+    const p = iso(r.labelAt[0], r.labelAt[1]);
+    c.font = '700 30px Archivo, sans-serif';
+    c.fillStyle = 'rgba(0,0,0,.35)';  c.fillText(r.label, p.x + 2, p.y + 2);
+    c.fillStyle = 'rgba(255,255,255,.95)'; c.fillText(r.label, p.x, p.y);
+  }
+  const g = iso(15.5, 18.5);
+  c.font = '700 28px Archivo, sans-serif';
+  c.fillStyle = 'rgba(230,237,247,.9)';
+  c.fillText('OFFICE SIMULATION', g.x, g.y);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   5. SPRITES
+   ═══════════════════════════════════════════════════════════════ */
+function box(c, tx, ty, w, d, h, top, left, right) {
+  const A = iso(tx, ty), B = iso(tx + w, ty), C = iso(tx + w, ty + d), D = iso(tx, ty + d);
+  quad(c, [[B.x,B.y-h],[C.x,C.y-h],[C.x,C.y],[B.x,B.y]], right);
+  quad(c, [[D.x,D.y-h],[C.x,C.y-h],[C.x,C.y],[D.x,D.y]], left);
+  quad(c, [[A.x,A.y-h],[B.x,B.y-h],[C.x,C.y-h],[D.x,D.y-h]], top);
+}
+
+function drawProp(c, p, now) {
+  const { type, tx, ty } = p;
+  switch (type) {
+    case 'desk': {
+      const w = p.big ? 2.1 : 1.5;
+      box(c, tx - w/2, ty - .45, w, .9, 4, '#7A5A3C', '#4A3524', '#5C4229');
+      box(c, tx - w/2 + .1, ty - .3, .18, .6, 16, '#3F2D1F', '#2E2117', '#372718');
+      box(c, tx + w/2 - .28, ty - .3, .18, .6, 16, '#3F2D1F', '#2E2117', '#372718');
+      box(c, tx - .34, ty + .05, .5, .22, 2, '#2A3040', '#1B2130', '#222A3A');
+      const cp = iso(tx + w/2 - .18, ty + .3);
+      c.strokeStyle = 'rgba(20,24,32,.7)'; c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(cp.x, cp.y - 2); c.lineTo(cp.x + 2, cp.y + 6); c.stroke();
+      break;
+    }
+    case 'monitor': {
+      box(c, tx - .22, ty - .2, .12, .5, 4, '#2A3040', '#1B2130', '#222A3A');
+      box(c, tx - .3, ty - .32, .1, .74, 18, '#323B4E', '#1C2433', '#5D7FA8');
+      const owner = p.owner && byId[p.owner];
+      const st = owner ? owner.fsm : null;
+      const glowCol = st === 'working' ? '#7FE3B4' : st === 'blocked' ? '#E5484D' : st === 'waiting' ? '#F2A73B' : '#5D7FA8';
+      const q0 = iso(tx-.3, ty-.3), q1 = iso(tx-.3, ty+.4);
+      quad(c, [[q0.x,q0.y-16],[q1.x,q1.y-16],[q1.x,q1.y-4],[q0.x,q0.y-4]], glowCol);
+      if (st === 'working' && Math.floor(now/450) % 2 === 0) {
+        quad(c, [[q0.x+2,q0.y-14],[q0.x+6,q0.y-14],[q0.x+6,q0.y-6],[q0.x+2,q0.y-6]], 'rgba(255,255,255,.55)');
+      }
+      break;
+    }
+    case 'chair':
+      box(c, tx - .3, ty - .3, .62, .62, 9, '#2E3647', '#1E2532', '#262E3C');
+      box(c, tx - .34, ty - .3, .12, .62, 22, '#343D50', '#1E2532', '#2A3242');
+      box(c, tx - .34, ty - .1, .12, .06, 22, '#3F4A60', '#1E2532', '#2A3242');
+      break;
+    case 'partition': {
+      box(c, tx - .1, ty - .55, .16, 1.9, 30, '#8E9AA9', '#5D6875', '#6E7A88');
+      const w0 = iso(tx, ty-.5), w1 = iso(tx, ty+1.3);
+      quad(c, [[w0.x-1,w0.y-28],[w0.x+7,w0.y-28],[w1.x+7,w1.y-4],[w1.x-1,w1.y-4]], 'rgba(180,210,230,.14)');
+      break;
+    }
+    case 'plant':
+      box(c, tx - .28, ty - .28, .56, .56, 9, '#8B5A3C', '#5E3B26', '#6E462E');
+      box(c, tx - .3, ty - .3, .6, .6, 3, '#6E462E', '#4A2F1E', '#5A3826');
+      box(c, tx - .34, ty - .34, .68, .68, 24, '#3E7B4C', '#255235', '#2E6340');
+      box(c, tx - .22, ty - .22, .44, .44, 34, '#4C9159', '#2D5E3C', '#376E46');
+      box(c, tx - .12, ty - .38, .24, .3, 40, '#5CA366', '#377848', '#448D57');
+      break;
+    case 'cooler': {
+      box(c, tx - .28, ty - .28, .56, .56, 22, '#D9DEE6', '#8E96A3', '#A7AFBB');
+      box(c, tx - .22, ty - .22, .44, .44, 40, '#6FA8C9', '#3F7392', '#4E86A6');
+      const bp = iso(tx, ty);
+      const bt = (now / 900) % 1;
+      c.fillStyle = 'rgba(255,255,255,.5)';
+      c.beginPath(); c.ellipse(bp.x, bp.y - 26 - bt*14, 2, 2.6, 0, 0, Math.PI*2); c.fill();
+      break;
+    }
+    case 'coffee': {
+      box(c, tx - .3, ty - .3, .6, .6, 16, '#2B303A', '#1A1E25', '#22262F');
+      box(c, tx - .22, ty - .22, .44, .44, 26, '#3B424F', '#22262F', '#2C323C');
+      const sp = iso(tx, ty);
+      for (let i=0;i<2;i++) {
+        const t = ((now/1100) + i*.5) % 1;
+        c.globalAlpha = (1-t) * .35;
+        c.strokeStyle = '#E6EDF7'; c.lineWidth = 2; c.lineCap='round';
+        c.beginPath(); c.moveTo(sp.x-3+i*4, sp.y-30-t*14); c.quadraticCurveTo(sp.x+2+i*4, sp.y-38-t*14, sp.x-1+i*4, sp.y-46-t*14); c.stroke();
+        c.globalAlpha = 1;
+      }
+      break;
+    }
+    case 'printer':
+      box(c, tx - .35, ty - .35, .7, .7, 14, '#C9CDD4', '#82878F', '#9BA0A8');
+      box(c, tx - .28, ty - .28, .56, .56, 20, '#E4E7EB', '#9BA0A8', '#B4B9C1');
+      box(c, tx - .18, ty + .02, .36, .18, 22, '#F4F6F8', '#C7CBD1', '#DADDE2');
+      break;
+    case 'shelf':
+      box(c, tx - .18, ty - .8, .36, 1.6, 44, '#6B4A2F', '#3E2B1C', '#4D3523');
+      for (let i = 0; i < 3; i++) {
+        const cols = ['#B85C4A','#4F7EA8','#C8A24B','#6E8F5C','#9C5B8C'];
+        const y0 = ty - .7 + i * .1, h = 40 - i * 12;
+        for (let k=0;k<4;k++)
+          box(c, tx - .13 + k*.06, y0, .05, 1.3, h - (k%2)*4, cols[(i*4+k)%cols.length], '#2E2117', '#3A2A1C');
+      }
+      break;
+    case 'cabinet':
+      box(c, tx - .24, ty - .3, .48, .6, 30, '#3E4658', '#242A35', '#2E3546');
+      for (let i=0;i<3;i++) box(c, tx-.2, ty-.26+ i*.005, .4, .14, 26-i*8, '#4A5468', '#242A35', '#2E3546');
+      break;
+    case 'lamp': {
+      const p0 = iso(tx, ty);
+      c.strokeStyle = '#333'; c.lineWidth = 1.4;
+      c.beginPath(); c.moveTo(p0.x, p0.y - 66); c.lineTo(p0.x, p0.y - 40); c.stroke();
+      box(c, tx - .16, ty - .16, .32, .32, 8, '#3A3226', '#221D16', '#2C271D');
+      const g = c.createRadialGradient(p0.x, p0.y - 34, 2, p0.x, p0.y - 34, 30);
+      g.addColorStop(0, 'rgba(255,214,140,.35)'); g.addColorStop(1, 'rgba(255,214,140,0)');
+      c.fillStyle = g; c.beginPath(); c.ellipse(p0.x, p0.y - 34, 30, 16, 0, 0, Math.PI*2); c.fill();
+      break;
+    }
+    case 'rack': {
+      box(c, tx - .3, ty - .4, .6, .8, 46, '#242A35', '#12161D', '#1A1F28');
+      const seed = (tx*13 + ty*7) | 0;
+      for (let i = 0; i < 5; i++) {
+        const blink = (Math.floor(now/260) + seed + i*3) % 5 < 1;
+        const col = i===4 ? (blink ? '#E5484D' : '#5A2226') : (blink ? '#3FCF8E' : '#1B4F38');
+        box(c, tx - .24, ty - .3, .1, .6, 40 - i * 8, col, '#1B4F38', '#2B7A56');
+      }
+      break;
+    }
+    case 'board':
+      box(c, tx - .1, ty - .9, .16, 1.8, 36, '#E8E4DA', '#9A968D', '#C3BFB5');
+      break;
+    case 'table':
+      box(c, tx - 1.3, ty - .9, 2.6, 1.8, 5, '#7A5A3C', '#4A3524', '#5C4229');
+      box(c, tx - .2, ty - .2, .4, .4, 16, '#3F2D1F', '#2E2117', '#372718');
+      break;
+  }
+}
+
+/* Chunky pixel person — animated: walk cycle, idle bob, typing hands */
+function drawPerson(c, wx, wy, e) {
+  const kind = e.animKind || 'idle';
+  const ph = e.animPhase || 0;
+  const facing = e.facing || 'e';
+
+  let bob = 0, liftL = 0, liftR = 0, armL = 0, armR = 0;
+  if (kind === 'walk') {
+    const w = Math.sin(ph);
+    bob = Math.abs(w) * 1.6;
+    liftL = Math.max(0, w) * 3.2;
+    liftR = Math.max(0, -w) * 3.2;
+    armL = -w * 3; armR = w * 3;
+  } else if (kind === 'type') {
+    bob = Math.sin(ph * 0.4) * 0.4;
+    armR = Math.sin(ph * 3) * 1.1;
+  } else {
+    bob = Math.sin(ph * 0.5) * 0.5;
+  }
+
+  c.save(); c.translate(wx, wy - bob);
+
+  c.fillStyle = 'rgba(0,0,0,.28)';
+  c.beginPath(); c.ellipse(0, 0, 13, 6, 0, 0, Math.PI * 2); c.fill();
+
+  const R = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(Math.round(x), Math.round(y), w, h); };
+  const dark = (col) => tint(col, .72);
+
+  R(-8, -14 + liftL, 6, 14 - liftL, '#2B3446');
+  R( 2, -14 + liftR, 6, 14 - liftR, '#2B3446');
+  R(-7, -2 + liftL, 7, 3, '#171C26');
+  R( 1, -2 + liftR, 7, 3, '#171C26');
+  R(-10, -31, 20, 18, e.shirt);
+  R(-10, -31, 20, 3, tint(e.shirt, 1.18));
+  R(-13, -29 + armL, 4, 13, dark(e.shirt));
+  R(  9, -29 + armR, 4, 13, dark(e.shirt));
+  R(-3, -34, 6, 4, e.skin);
+  R(-8, -47, 16, 14, e.skin);
+  R(-9, -49, 18, 7, e.hair);
+  R(-9, -43, 3, 4, e.hair);
+  R( 6, -43, 3, 4, e.hair);
+  const eyeShift = { n:0, s:0, e:1, w:-1 }[facing] || 0;
+  R(-5 + eyeShift, -41, 2, 2, '#1B1B22');
+  R( 2 + eyeShift, -41, 2, 2, '#1B1B22');
+
+  c.restore();
+}
+
+function drawHalo(c, wx, wy, color, pulse) {
+  c.save(); c.translate(wx, wy);
+  c.globalAlpha = pulse;
+  c.strokeStyle = color; c.lineWidth = 2;
+  c.beginPath(); c.ellipse(0, 0, 17, 8.5, 0, 0, Math.PI * 2); c.stroke();
+  c.globalAlpha = pulse * 0.14; c.fillStyle = color; c.fill();
+  c.restore();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. CAMERA + RENDER LOOP
+   ═══════════════════════════════════════════════════════════════ */
+const cv = document.getElementById('office');
+const ctx = cv.getContext('2d');
+const stage = document.getElementById('stage');
+const ZOOMS = [0.5, 0.75, 1, 1.5, 2];
+let cam = { x: 0, y: 0, z: 0.55 }, vw = 0, vh = 0, dpr = 1;
+
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  vw = stage.clientWidth; vh = stage.clientHeight;
+  cv.width = Math.floor(vw * dpr); cv.height = Math.floor(vh * dpr);
+  cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
+}
+const toScreen = (wx, wy) => ({ x: (wx - cam.x) * cam.z + vw / 2, y: (wy - cam.y) * cam.z + vh / 2 });
+
+function fit() {
+  const pad = 40;
+  cam.z = Math.min((vw - pad) / WW, (vh - pad) / WH);
+  cam.x = WW / 2 - OX; cam.y = WH / 2 - OY;
+}
+function snapZoom(dir) {
+  let i = 0, best = 1e9;
+  ZOOMS.forEach((z, k) => { const d = Math.abs(z - cam.z); if (d < best) { best = d; i = k; } });
+  cam.z = ZOOMS[Math.max(0, Math.min(ZOOMS.length - 1, i + dir))];
+}
+
+let propsSorted = [];
+function buildDisplayList() {
+  propsSorted = PROPS.map(p => ({ kind: 'prop', d: depth(p.tx, p.ty, 1), p })).sort((a, b) => a.d - b.d);
+}
+function frameList() {
+  const emps = EMPLOYEES.map(e => ({ kind: 'emp', d: depth(e.pos.x, e.pos.y, 2), e }));
+  emps.sort((a, b) => a.d - b.d);
+  const out = []; let i = 0, j = 0;
+  while (i < propsSorted.length && j < emps.length)
+    out.push(propsSorted[i].d <= emps[j].d ? propsSorted[i++] : emps[j++]);
+  while (i < propsSorted.length) out.push(propsSorted[i++]);
+  while (j < emps.length) out.push(emps[j++]);
+  return out;
+}
+
+const HALO = { working: '#3FCF8E', waiting: '#F2A73B', blocked: '#E5484D', meeting: '#3D7BFF' };
+let lastList = [];
+
+/* ═══════════════════════════════════════════════════════════════
+   6.5 MOTION — idle bob, typing hands, walk cycles, idle strolls.
+   Position is cosmetic only; no governed outcome depends on it.
+   ═══════════════════════════════════════════════════════════════ */
+const BREAKS = {
+  dev_floor:    [[48,9],[48,19],[31,26]],
+  devops:       [[8,17]],
+  managers:     [[28,4]],
+  ceo_office:   null,
+  meeting_room: null,
+};
+
+function walkTo(e, tx, ty, dur, after) {
+  e.moving = { fromX: e.pos.x, fromY: e.pos.y, toX: tx, toY: ty, start: performance.now(), dur, after };
+}
+
+function maybeStroll(e, now) {
+  if (e.fsm === 'blocked' || e.fsm === 'waiting' || e.fsm === 'meeting') return;
+  if (now < (e._nextStroll || 0)) return;
+  e._nextStroll = now + 9000 + Math.random() * 16000;
+  const bp = BREAKS[e.room];
+  if (!bp || Math.random() > 0.4) return;
+  const target = bp[Math.floor(Math.random() * bp.length)];
+  const homeX = e.at[0], homeY = e.at[1];
+  walkTo(e, target[0], target[1], 1500 + Math.random() * 400, () => {
+    setTimeout(() => walkTo(e, homeX, homeY, 1500 + Math.random() * 400), 1400 + Math.random() * 900);
+  });
+}
+
+function updateMotion(now) {
+  for (const e of EMPLOYEES) {
+    if (e.moving) {
+      const m = e.moving;
+      const k = Math.min(1, (now - m.start) / m.dur);
+      const s = k < .5 ? 2*k*k : -1 + (4 - 2*k)*k;
+      e.pos.x = m.fromX + (m.toX - m.fromX) * s;
+      e.pos.y = m.fromY + (m.toY - m.fromY) * s;
+      const dx = m.toX - m.fromX, dy = m.toY - m.fromY;
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01)
+        e.facing = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'e' : 'w') : (dy > 0 ? 's' : 'n');
+      e.animKind = 'walk'; e.animPhase = now / 130;
+      if (k >= 1) { const cb = m.after; e.moving = null; if (cb) cb(); }
+    } else {
+      e.animKind = (e.fsm === 'working') ? 'type' : 'idle';
+      e.animPhase = now / 260;
+      maybeStroll(e, now);
+    }
+  }
+}
+
+let t0 = performance.now();
+function render(now) {
+  requestAnimationFrame(render);
+  if (gridOn) return;
+  updateMotion(now);
+  const beatWave = (Math.sin(now / 700) + 1) / 2;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const vg = ctx.createRadialGradient(vw/2, vh/2, 0, vw/2, vh/2, Math.max(vw, vh) * 0.75);
+  vg.addColorStop(0, '#0D1420'); vg.addColorStop(1, '#050810');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, vw, vh);
+
+  ctx.save();
+  ctx.translate(vw / 2, vh / 2); ctx.scale(cam.z, cam.z); ctx.translate(-cam.x, -cam.y);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(world, -OX, -OY);
+
+  const list = frameList();
+  lastList = list;
+  for (const it of list) {
+    if (it.kind === 'prop') { drawProp(ctx, it.p, now); continue; }
+    const e = it.e, p = iso(e.pos.x, e.pos.y);
+    const halo = HALO[e.fsm];
+    if (halo) drawHalo(ctx, p.x, p.y + 6, halo, e.fsm === 'waiting' ? 0.45 + beatWave * 0.5 : 0.8);
+    if (e.anomaly) drawHalo(ctx, p.x, p.y + 6, '#E668C3', 0.35 + beatWave * 0.5);
+    drawPerson(ctx, p.x, p.y, e);
+  }
+  ctx.restore();
+  syncHud();
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   7. HUD
+   ═══════════════════════════════════════════════════════════════ */
+const hud = document.getElementById('hud');
+const plates = {};
+const AGENT_GLYPH = { claude_code: '◆', codex: '▣', internal: '▤', mcp: '◈' };
+
+for (const e of EMPLOYEES) {
+  const plate = document.createElement('div');
+  plate.className = 'plate';
+  plate.innerHTML = `<div class="seg1"><span class="sd"></span><span>${e.first}</span></div>
+                     <div class="seg2"><span>${AGENT_GLYPH[e.agent]}</span><span>${e.role}</span></div>`;
+  plate.addEventListener('click', ev => { ev.stopPropagation(); select(e.id); });
+  hud.appendChild(plate);
+
+  const pill = document.createElement('div');
+  pill.className = 'pillx hidden';
+  hud.appendChild(pill);
+
+  const bub = document.createElement('div');
+  bub.className = 'bubble'; bub.style.display = 'none';
+  hud.appendChild(bub);
+
+  plates[e.id] = { plate, pill, bub, dot: plate.querySelector('.sd') };
+}
+
+const PILL = {
+  waiting: ['review', '⏳ Waiting Approval'],
+  blocked: ['block',  '✕ BLOCKED'],
+  working: ['allow',  '● Working'],
+};
+
+function syncHud() {
+  const show = cam.z >= 0.45;
+  for (const e of EMPLOYEES) {
+    const h = plates[e.id], p = iso(e.pos.x, e.pos.y);
+    const s = toScreen(p.x, p.y - 52);
+    h.plate.classList.toggle('hidden', !show);
+    h.plate.classList.toggle('idle', e.fsm === 'idle' || e.fsm === 'meeting');
+    if (show) {
+      h.plate.style.transform = `translate3d(${Math.round(s.x - h.plate.offsetWidth / 2)}px,${Math.round(s.y - 60)}px,0)`;
+      h.dot.style.background = HALO[e.fsm] || '#64748B';
+    }
+    const pd = e.anomaly ? ['anomaly', `◆ Risk ${e.risk}`] : PILL[e.fsm];
+    const wantPill = show && pd && (e.fsm !== 'working' || e.showWorking || e.anomaly);
+    h.pill.classList.toggle('hidden', !wantPill);
+    if (wantPill) {
+      h.pill.className = 'pillx ' + pd[0];
+      h.pill.textContent = pd[1];
+      h.pill.style.transform = `translate3d(${Math.round(s.x + 20)}px,${Math.round(s.y - 86)}px,0)`;
+    }
+    if (e.bubble && e.bubble.until > performance.now()) {
+      h.bub.style.display = 'block';
+      h.bub.textContent = e.bubble.text;
+      h.bub.style.transform = `translate3d(${Math.round(s.x - 14)}px,${Math.round(s.y - 116)}px,0)`;
+    } else h.bub.style.display = 'none';
+  }
+  if (cardFor) positionCard();
+}
+
+const card = document.getElementById('clickcard');
+let cardFor = null, cardTimer = 0;
+function positionCard() {
+  const e = byId[cardFor], p = iso(e.pos.x, e.pos.y);
+  const s = toScreen(p.x, p.y);
+  let x = s.x + 26, y = s.y - 40;
+  if (x + 250 > vw - 12) x = s.x - 276;
+  card.style.left = Math.round(Math.max(8, x)) + 'px';
+  card.style.top  = Math.round(Math.max(8, Math.min(y, vh - 140))) + 'px';
+}
+const CARD_COPY = {
+  waiting: ['review', '⚠', 'WAITING FOR APPROVAL', 'Agent attempted production deployment.'],
+  blocked: ['block',  '✕', 'BLOCKED BY GATE 2',    'read_file .env.production — pol_block_secret_read.'],
+  working: ['allow',  '●', 'WORKING',              'Agent session in progress, all actions allowed.'],
+  idle:    ['idle',   '○', 'IDLE',                 'No task assigned right now.'],
+  meeting: ['shield', '▣', 'IN A MEETING',         'Away from the desk. No agent session.'],
+};
+function showCard(id) {
+  const e = byId[id];
+  const [tone, icon, k, v] = e.anomaly
+    ? ['anomaly', '◆', `FLAGGED · RISK ${e.risk}`, 'Behaviour diverges from this person\'s own 14-day baseline.']
+    : CARD_COPY[e.fsm];
+  const col = `var(--${tone === 'idle' ? 'idle' : tone})`;
+  document.getElementById('ccicon').style.color = col;
+  document.getElementById('ccicon').textContent = icon;
+  document.getElementById('ccname').textContent = e.first;
+  document.getElementById('ccrole').textContent = e.role;
+  const kEl = document.getElementById('cck'); kEl.textContent = k; kEl.style.color = col;
+  document.getElementById('ccv').textContent = v;
+  cardFor = id; card.style.display = 'block'; positionCard();
+  clearTimeout(cardTimer); cardTimer = setTimeout(hideCard, 6000);
+}
+function hideCard() { cardFor = null; card.style.display = 'none'; }
+
+/* ═══════════════════════════════════════════════════════════════
+   8. INPUT
+   ═══════════════════════════════════════════════════════════════ */
+let dragging = false, moved = 0, last = null;
+cv.addEventListener('pointerdown', e => { dragging = true; moved = 0; last = e; cv.classList.add('drag'); cv.setPointerCapture(e.pointerId); });
+cv.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  moved += Math.abs(e.clientX - last.clientX) + Math.abs(e.clientY - last.clientY);
+  cam.x -= (e.clientX - last.clientX) / cam.z;
+  cam.y -= (e.clientY - last.clientY) / cam.z;
+  last = e;
+});
+cv.addEventListener('pointerup', e => {
+  dragging = false; cv.classList.remove('drag');
+  if (moved < 5) hitTest(e);
+});
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  cam.z = Math.max(0.4, Math.min(2, cam.z * (e.deltaY > 0 ? 0.9 : 1.1)));
+}, { passive: false });
+
+function hitTest(ev) {
+  const r = cv.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+  for (let i = lastList.length - 1; i >= 0; i--) {
+    const it = lastList[i]; if (it.kind !== 'emp') continue;
+    const p = iso(it.e.pos.x, it.e.pos.y), s = toScreen(p.x, p.y);
+    if (Math.abs(mx - s.x) < 15 * cam.z && my < s.y + 8 * cam.z && my > s.y - 50 * cam.z) { select(it.e.id); return; }
+  }
+  closeDrawer(); hideCard();
+}
+
+document.getElementById('zin').onclick  = () => snapZoom(+1);
+document.getElementById('zout').onclick = () => snapZoom(-1);
+document.getElementById('zfit').onclick = () => fit();
+
+/* ═══════════════════════════════════════════════════════════════
+   9. EMPLOYEE DRAWER
+   ═══════════════════════════════════════════════════════════════ */
+const drawer = document.getElementById('drawer');
+const riskColor = s => s >= 90 ? 'var(--risk-90)' : s >= 70 ? 'var(--risk-70)' : s >= 40 ? 'var(--risk-40)' : 'var(--risk-0)';
+const humanTokens = n => n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1000 ? Math.round(n/1000)+'K' : String(n);
+const money = n => n < 100 ? '$' + n.toFixed(2) : '$' + Math.round(n);
+
+const FACTORS = {
+  emp_017: ['5.8× his normal token usage today', '4 blocked secret-file attempts', '31% of activity after 01:00'],
+  emp_013: ['3.1× normal token usage today', '2 blocked secret-file attempts', 'Touched 1 repo outside his usual two'],
+  emp_014: ['Retry loop: 6 identical tool calls in 5 minutes', '2.4× normal session length', 'Test suite failed 9 times today'],
+};
+const DEFAULT_FACTORS = ['Token usage in line with their baseline', 'No blocked actions today', 'Repository access within declared scope'];
+
+function select(id) {
+  const e = byId[id];
+  showCard(id);
+  const p = iso(e.pos.x, e.pos.y);
+  panTo(p.x, p.y);
+  openDrawer(e);
+}
+
+let pan = null;
+function panTo(x, y) { pan = { fx: cam.x, fy: cam.y, tx: x, ty: y, t: performance.now() }; }
+(function panTick() {
+  requestAnimationFrame(panTick);
+  if (!pan) return;
+  const k = Math.min(1, (performance.now() - pan.t) / 300);
+  const s = k < .5 ? 2*k*k : -1 + (4 - 2*k)*k;
+  cam.x = pan.fx + (pan.tx - pan.fx) * s;
+  cam.y = pan.fy + (pan.ty - pan.fy) * s;
+  if (k === 1) pan = null;
+})();
+
+function openDrawer(e) {
+  drawer.classList.add('on');
+  document.getElementById('dname').textContent  = e.name;
+  document.getElementById('drole').textContent  = `${e.role} · ${e.team}`;
+  document.getElementById('dagent').textContent = 'Agent: ' + e.agent.replace('_', ' ');
+  const av = document.getElementById('dav').getContext('2d');
+  av.clearRect(0,0,44,52); av.save(); av.translate(22, 50); av.scale(.85,.85);
+  drawPerson(av, 0, 0, e); av.restore();
+
+  const t = e.today;
+  document.getElementById('dreq').textContent   = t.requests;
+  document.getElementById('dtok').textContent   = humanTokens(t.tokens);
+  document.getElementById('dcost').textContent  = money(t.cost);
+  document.getElementById('dses').textContent   = t.sessions;
+  document.getElementById('dallow').textContent = t.allowed;
+  document.getElementById('dblock').textContent = t.blocked;
+  document.getElementById('dreview').textContent= t.review;
+
+  const m = document.getElementById('dmeter');
+  m.style.width = e.risk + '%'; m.style.background = riskColor(e.risk);
+  document.getElementById('dscore').textContent = e.risk;
+  document.getElementById('dconf').textContent = e.today.sessions < 2 ? 'low confidence — 14/20 sessions' : 'normal confidence';
+  document.getElementById('dfactors').innerHTML =
+    (FACTORS[e.id] || DEFAULT_FACTORS).map(f => `<li>${f}</li>`).join('');
+
+  const dt = document.getElementById('dtask'), dm = document.getElementById('dtaskmeta'), ds = document.getElementById('dstate');
+  if (e.task) {
+    dt.textContent = `"${e.task.title}"`;
+    dm.textContent = `${e.task.repo} · ${e.task.env}`;
+  } else { dt.textContent = 'Nothing in progress.'; dm.textContent = ''; }
+  const box = {
+    waiting: ['review', '⚠ WAITING FOR APPROVAL', 'Agent attempted production deployment.'],
+    blocked: ['block',  '✕ BLOCKED BY GATE 2',    'read_file .env.production — pol_block_secret_read (v1, p200).'],
+    working: ['allow',  '● WORKING',              'Agent session in progress.'],
+  }[e.fsm];
+  ds.innerHTML = box ? `<div class="statebox ${box[0]}"><div>${box[1]}</div><p>${box[2]}</p></div>` : '';
+
+  document.getElementById('ddecisions').innerHTML = e.decisions.length
+    ? e.decisions.slice(0, 6).map(d =>
+        `<div class="dec"><span class="t">${d.t}</span><span class="w">${d.what}</span>
+         <span class="chip ${d.k}">${d.k.toUpperCase()}</span></div>`).join('')
+    : `<p style="font-size:12px;color:var(--text-faint)">No governed decisions yet today.</p>`;
+}
+function closeDrawer() { drawer.classList.remove('on'); }
+document.getElementById('dclose').onclick = () => { closeDrawer(); hideCard(); };
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeDrawer(); hideCard(); }
+  if (e.key === ' ' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
+    e.preventDefault(); setSpeed(speed === 0 ? 1 : 0);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════════
+   10. EVENT PUMP — stand-in for the WS stream / bridge.ts
+   ═══════════════════════════════════════════════════════════════ */
+const logEl = document.getElementById('loglines');
+const logEmpty = document.getElementById('logempty');
+let simMinutes = 9 * 60 + 15;
+
+function clock() {
+  const h = Math.floor(simMinutes / 60) % 24, m = simMinutes % 60;
+  return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+}
+function logLine(html) {
+  if (logEmpty) logEmpty.remove();
+  const d = document.createElement('div');
+  d.className = 'logline';
+  d.innerHTML = `<span class="t">[${clock()}]</span> ${html}`;
+  logEl.prepend(d);
+  while (logEl.children.length > 200) logEl.lastChild.remove();
+}
+
+function setState(id, fsm, opts = {}) {
+  const e = byId[id];
+  e.fsm = fsm;
+  e.showWorking = !!opts.showWorking;
+  if (opts.bubble) e.bubble = { text: opts.bubble, until: performance.now() + 4000 };
+  if (opts.task) e.task = opts.task;
+  if (opts.decision) e.decisions.unshift({ t: clock(), what: opts.decision[1], k: opts.decision[0] });
+  if (drawer.classList.contains('on') && document.getElementById('dname').textContent === e.name) openDrawer(e);
+}
+function bump(id, f) { const t = byId[id].today; f(t); }
+
+const SCRIPT = [
+  { m: 0, run: () => {
+      setState('emp_013','working',{ bubble:'Fix payment API error', showWorking:false,
+        task:{ title:'Fix payment API error', repo:'payments-api', env:'production' }});
+      bump('emp_013', t => { t.requests += 1; t.sessions += 1; t.allowed += 1; });
+      logLine(`Intern Rahul requested 'Fix payment API error'`);
+  }},
+  { m: 1, run: () => {
+      setState('emp_007','working',{ showWorking:true, decision:['allow','run_tests payments-api'] });
+      bump('emp_007', t => { t.requests += 2; t.tokens += 24000; t.cost += 0.42; t.allowed += 4; t.sessions += 1; });
+      logLine(`Gate 1 <span class="allow">ALLOW</span> — Priya Sharma, est <span class="money">$0.09</span>`);
+  }},
+  { m: 3, run: () => {
+      bump('emp_013', t => { t.tokens += 184000; t.cost += 3.12; t.allowed += 3; });
+      logLine(`Codex Agent usage: 184K tokens`);
+  }},
+  { m: 5, run: () => {
+      setState('emp_013','blocked',{ decision:['block','read_file .env.production'] });
+      bump('emp_013', t => { t.blocked += 1; });
+      logLine(`Task 'Fix payment...' — <span class="block">Blocked by AgentShield Gate 2</span>`);
+  }},
+  { m: 7, run: () => {
+      logLine(`read_file .env.production — pol_block_secret_read (v1, p200)`);
+  }},
+  { m: 9, run: () => {
+      setState('emp_004','waiting',{ task:{ title:'Rotate staging credentials', repo:'platform-core', env:'staging' },
+        decision:['review','git_push platform-core main'] });
+      bump('emp_004', t => { t.requests += 1; t.review += 1; t.sessions += 1; t.tokens += 41000; t.cost += 0.78; });
+      bell(+1);
+      logLine(`Manager Ben review request for Sarah Khan`);
+  }},
+  { m: 10, run: () => {
+      setState('emp_017','working',{ showWorking:true, task:{ title:'Refactor auth middleware', repo:'infra-terraform', env:'staging' },
+        decision:['review','git_push infra-terraform'] });
+      byId['emp_017'].anomaly = true; byId['emp_017'].risk = 84;
+      bump('emp_017', t => { t.requests += 9; t.tokens += 238000; t.cost += 6.40; t.allowed += 12; t.blocked += 4; t.sessions += 3; });
+      logLine(`<span class="anomaly">Risk 84</span> — Nikhil Rao flagged: token usage 5.8× baseline`);
+  }},
+  { m: 12, run: () => {
+      setState('emp_013','waiting',{ decision:['review','deploy payments-api production'] });
+      byId['emp_013'].risk = 61;
+      bump('emp_013', t => { t.review += 1; });
+      bell(+1);
+      logLine(`<span class="review">REVIEW</span> — deploy payments-api / production`);
+  }},
+  { m: 14, run: () => {
+      setState('emp_014','working',{ showWorking:true, decision:['block','run_tests payments-api ×6'] });
+      bump('emp_014', t => { t.requests += 4; t.tokens += 96000; t.cost += 1.84; t.blocked += 2; t.allowed += 6; t.sessions += 2; });
+      logLine(`<span class="block">BLOCK</span> retry loop — Ishaan Bose, <span class="money">$1.84</span> waste`);
+  }},
+  { m: 16, run: () => {
+      setState('emp_008','working',{ showWorking:true, decision:['redact','prompt contained an AWS key'] });
+      bump('emp_008', t => { t.requests += 1; t.sessions += 1; t.tokens += 12000; t.cost += 0.22; });
+      logLine(`Gate 1 <span class="redact">REDACT</span> — aws_access_key masked before the model call`);
+  }},
+  { m: 18, run: () => {
+      setState('emp_013','working',{ showWorking:true, decision:['allow','deploy payments-api production'] });
+      bell(-1);
+      logLine(`<span class="allow">Approved</span> by Ben Mathew — Rahul's deployment is continuing`);
+  }},
+  { m: 21, run: () => {
+      setState('emp_004','working',{ showWorking:true, decision:['allow','git_push platform-core'] });
+      bell(-1);
+      logLine(`<span class="allow">Approved</span> once — Sarah Khan, git_push platform-core`);
+  }},
+  { m: 24, run: () => {
+      setState('emp_013','idle'); setState('emp_004','idle'); setState('emp_007','idle');
+      logLine(`Task 'Fix payment API error' completed · 4 actions · <span class="money">$3.12</span>`);
+  }},
+  { m: 26, run: () => {
+      setState('emp_009','working',{ showWorking:true, bubble:'Add refund unit test' });
+      bump('emp_009', t => { t.requests += 1; t.sessions += 1; t.tokens += 18000; t.cost += 0.31; t.allowed += 3; });
+      logLine(`Rohit Das requested 'Add a unit test for the refund path'`);
+  }},
+];
+
+let beat = 0, speed = 1, acc = 0, lastTick = performance.now();
+function pumpTick(now) {
+  requestAnimationFrame(pumpTick);
+  if (speed === 0 || speed === 100 || gridOn) { lastTick = now; return; }
+  const dt = now - lastTick; lastTick = now;
+  acc += dt * speed;
+  const stepMs = 1400;
+  while (acc >= stepMs) {
+    acc -= stepMs;
+    simMinutes += 1;
+    const b = SCRIPT[beat % SCRIPT.length];
+    b.run(); beat++;
+    if (beat % SCRIPT.length === 0) { simMinutes += 40; }
+    updateClock();
+  }
+}
+requestAnimationFrame(pumpTick);
+
+function updateClock() {
+  document.getElementById('simclock').textContent = 'Tue ' + clock();
+  document.getElementById('simmult').textContent = speed > 1 ? '×' + speed : '';
+}
+
+let bellN = 2;
+function bell(d) {
+  bellN = Math.max(0, bellN + d);
+  const el = document.getElementById('bell');
+  document.getElementById('bellcount').textContent = bellN;
+  el.style.display = bellN ? '' : 'none';
+  if (d > 0) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   11. SPEED CONTROL
+   ═══════════════════════════════════════════════════════════════ */
+const pausedOverlay = document.getElementById('pausedOverlay');
+const ffOverlay = document.getElementById('ffOverlay');
+const segButtons = [...document.querySelectorAll('.seg button')];
+
+function setSpeed(s) {
+  if (s === 100) { runFastForward(); return; }
+  speed = s;
+  segButtons.forEach(b => b.classList.toggle('on', +b.dataset.speed === s));
+  pausedOverlay.classList.toggle('on', s === 0);
+  cv.style.opacity = s === 0 ? .6 : 1;
+  updateClock();
+}
+segButtons.forEach(b => b.onclick = () => setSpeed(+b.dataset.speed));
+
+function runFastForward() {
+  segButtons.forEach(b => b.classList.toggle('on', b.dataset.speed === '100'));
+  ffOverlay.classList.add('on');
+  document.getElementById('ffProgress').style.display = '';
+  document.getElementById('ffSummary').style.display = 'none';
+  let day = 0, ev = 0;
+  const iv = setInterval(() => {
+    day += 1; ev += 1900 + Math.round(Math.random() * 700);
+    document.getElementById('ffbar').style.width = (day / 7 * 100) + '%';
+    document.getElementById('ffday').textContent = `day ${day} of 7`;
+    document.getElementById('ffevents').textContent = ev.toLocaleString() + ' events generated';
+    if (day >= 7) {
+      clearInterval(iv);
+      setTimeout(() => {
+        document.getElementById('ffProgress').style.display = 'none';
+        document.getElementById('ffSummary').style.display = '';
+      }, 350);
+    }
+  }, 420);
+}
+document.getElementById('ffback').onclick = () => {
+  ffOverlay.classList.remove('on');
+  simMinutes += 60 * 9;
+  document.getElementById('simday').textContent = 'day 21';
+  setSpeed(1);
+  logLine(`Resynced from snapshot · 7 simulated days advanced`);
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   12. CARD-GRID FALLBACK
+   ═══════════════════════════════════════════════════════════════ */
+let gridOn = false;
+const gridEl = document.getElementById('grid');
+const STATUS_TEXT = { working:['allow','● Working'], waiting:['review','⏳ Waiting approval'],
+  blocked:['block','✕ Blocked'], idle:['idle','○ Idle'], meeting:['shield','▣ Meeting'] };
+
+function renderGrid() {
+  document.getElementById('gridwrap').innerHTML = EMPLOYEES.map(e => {
+    const [tone, txt] = STATUS_TEXT[e.fsm];
+    return `<button class="gcard" data-id="${e.id}">
+      <div class="nm">${e.name}</div>
+      <div class="ro">${e.role}</div>
+      <div class="tm">${e.team}</div>
+      <div class="st" style="color:var(--${tone === 'idle' ? 'idle' : tone})">${txt}</div>
+      <div class="rk"><div class="meter" style="max-width:90px"><i style="width:${e.risk}%;background:${riskColor(e.risk)}"></i></div>
+        <span class="mono" style="font-size:11px">${e.risk}</span>
+        ${e.anomaly ? '<span style="color:var(--anomaly);font-size:11px">◆ flagged</span>' : ''}</div>
+    </button>`;
+  }).join('');
+  [...gridEl.querySelectorAll('.gcard')].forEach(b => b.onclick = () => openDrawer(byId[b.dataset.id]));
+}
+document.getElementById('viewtoggle').onclick = () => {
+  gridOn = !gridOn;
+  gridEl.classList.toggle('on', gridOn);
+  document.getElementById('viewtoggle').lastChild.textContent = gridOn ? ' Office view' : ' Simple view';
+  if (gridOn) renderGrid();
+};
+setInterval(() => { if (gridOn) renderGrid(); }, 1200);
+
+setInterval(() => {
+  const c = { working:0, waiting:0, blocked:0, idle:0, meeting:0 };
+  EMPLOYEES.forEach(e => c[e.fsm]++);
+  cv.setAttribute('aria-label',
+    `Office floor: ${c.working} employees working, ${c.waiting} waiting for approval, ` +
+    `${c.blocked} blocked, ${c.idle} idle, ${c.meeting} in a meeting.`);
+}, 2000);
+
+/* ═══════════════════════════════════════════════════════════════
+   13. BOOT
+   ═══════════════════════════════════════════════════════════════ */
+function boot() {
+  buildWorld();
+  buildDisplayList();
+  resize();
+  fit();
+  updateClock();
+  requestAnimationFrame(render);
+}
+window.addEventListener('resize', () => {
+  resize();
+  document.getElementById('curw').textContent = window.innerWidth + 'px';
+});
+document.getElementById('curw').textContent = window.innerWidth + 'px';
+document.fonts ? document.fonts.ready.then(boot) : boot();
+</script>
+</body>
+</html>
