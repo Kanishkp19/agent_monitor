@@ -15,6 +15,32 @@ from pydantic import BaseModel, ConfigDict, Field
 StopReason = Literal["end_turn", "tool_use", "max_tokens", "error"]
 
 
+class LLMUnavailable(Exception):
+    """A live provider could not answer after bounded retries.
+
+    Raised by adapters whose contract forbids mock substitution -- a caller
+    that needs a *real* model run (Autopilot) must fail loudly rather than
+    continue on scripted output. The simulation never catches this: it uses
+    providers that degrade to MockLLM instead.
+    """
+
+
+class LLMNotConfigured(LLMUnavailable):
+    """The live provider has no credentials configured."""
+
+
+class LLMProviderError(LLMUnavailable):
+    """The provider rejected the call (auth, model id, bad request).
+
+    Carries the HTTP status so the operator can tell a wrong key from a
+    wrong model id without re-running the request.
+    """
+
+    def __init__(self, message: str, *, status: int = 0) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 class LLMToolCall(BaseModel):
     id: str
     name: str

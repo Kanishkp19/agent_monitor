@@ -70,8 +70,10 @@ class Container:
                 AsyncioQueue,
                 DotenvSecrets,
                 FsBlobStore,
+                HybridAdapter,
                 MemoryBus,
                 MockLLMAdapter,
+                NebiusAdapter,
                 OllamaAdapter,
                 SqliteDocStore,
                 StdoutMetrics,
@@ -86,11 +88,20 @@ class Container:
             self.secrets = DotenvSecrets()
             # `mock` is the default so a fresh clone runs with no model
             # installed and no network. `bedrock` is meaningless locally.
-            self.llm = (
-                OllamaAdapter(settings)
-                if settings.llm_provider == "ollama"
-                else MockLLMAdapter(seed=settings.sim_seed)
-            )
+            # `mock` is the default so a fresh clone runs with no model
+            # installed and no network. `bedrock` is meaningless locally;
+            # `hybrid` is cloud -> ollama -> mock, all free tiers.
+            if settings.llm_provider == "hybrid":
+                self.llm = HybridAdapter(settings)
+            elif settings.llm_provider == "nebius":
+                # Live NVIDIA Nemotron via Nebius Token Factory. No mock
+                # fallback exists on this path: a failing provider raises
+                # `LLMUnavailable` and the caller reports an honest failure.
+                self.llm = NebiusAdapter(settings)
+            elif settings.llm_provider == "ollama":
+                self.llm = OllamaAdapter(settings)
+            else:
+                self.llm = MockLLMAdapter(seed=settings.sim_seed)
 
     # ── lifecycle, driven by the FastAPI lifespan ────────────────────
 

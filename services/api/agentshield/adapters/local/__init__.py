@@ -9,9 +9,12 @@ backend may import from this package -- `tests/test_architecture.py` asserts it.
 from agentshield.adapters.local.asyncio_queue import AsyncioQueue
 from agentshield.adapters.local.dotenv_secrets import DotenvSecrets
 from agentshield.adapters.local.fs_blobstore import FsBlobStore
+from agentshield.adapters.local.hybrid_llm import HybridAdapter
 from agentshield.adapters.local.memory_eventbus import MemoryBus
 from agentshield.adapters.local.mock_llm import MockLLMAdapter
+from agentshield.adapters.local.nebius_llm import NebiusAdapter
 from agentshield.adapters.local.ollama_llm import OllamaAdapter
+from agentshield.adapters.local.openai_compat_llm import OpenAICompatAdapter
 from agentshield.adapters.local.sqlite_docstore import SqliteDocStore
 from agentshield.adapters.local.stdout_metrics import StdoutMetrics
 
@@ -19,9 +22,12 @@ __all__ = [
     "AsyncioQueue",
     "DotenvSecrets",
     "FsBlobStore",
+    "HybridAdapter",
     "MemoryBus",
     "MockLLMAdapter",
+    "NebiusAdapter",
     "OllamaAdapter",
+    "OpenAICompatAdapter",
     "SqliteDocStore",
     "StdoutMetrics",
 ]

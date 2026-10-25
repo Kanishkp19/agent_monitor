@@ -24,7 +24,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 # different axis entirely. Conflating them would be a policy bug waiting to
 # happen.
 DeploymentEnv = Literal["local", "aws"]
-LLMProvider = Literal["mock", "ollama", "bedrock"]
+LLMProvider = Literal["mock", "ollama", "bedrock", "hybrid", "nebius"]
 
 
 class Settings(BaseSettings):
@@ -59,6 +59,30 @@ class Settings(BaseSettings):
     ollama_model_trivial: str = Field("qwen2.5-coder:1.5b", alias="OLLAMA_MODEL_TRIVIAL")
     llm_timeout_seconds: int = Field(45, ge=1, alias="LLM_TIMEOUT_SECONDS")
     llm_max_iterations: int = Field(8, ge=1, le=64, alias="LLM_MAX_ITERATIONS")
+
+    # ── Free cloud LLM (OpenAI-compatible: Groq, Gemini, OpenRouter…) ──
+    # Only used when LLM_PROVIDER=hybrid. With no key set, the hybrid adapter
+    # skips the cloud tier entirely and runs on local Ollama + MockLLM.
+    llm_cloud_base_url: str = Field("https://api.groq.com/openai/v1", alias="LLM_CLOUD_BASE_URL")
+    llm_cloud_api_key: str = Field("", alias="LLM_CLOUD_API_KEY")
+    llm_cloud_model_trivial: str = Field("openai/gpt-oss-20b", alias="LLM_CLOUD_MODEL_TRIVIAL")
+    llm_cloud_model_standard: str = Field("openai/gpt-oss-20b", alias="LLM_CLOUD_MODEL_STANDARD")
+    llm_cloud_model_complex: str = Field("openai/gpt-oss-120b", alias="LLM_CLOUD_MODEL_COMPLEX")
+    llm_cloud_rpm: int = Field(28, ge=1, alias="LLM_CLOUD_RPM")
+    llm_cloud_max_retries: int = Field(4, ge=0, le=8, alias="LLM_CLOUD_MAX_RETRIES")
+    llm_cloud_breaker_threshold: int = Field(6, ge=1, alias="LLM_CLOUD_BREAKER_THRESHOLD")
+    llm_cloud_breaker_cooldown_s: int = Field(60, ge=5, alias="LLM_CLOUD_BREAKER_COOLDOWN_S")
+
+    # ── Nebius Token Factory (NVIDIA Nemotron) ────────────────────────
+    # The live provider for Autopilot. Unlike the free-tier cloud settings
+    # above, this adapter has NO mock fallback: a qualifying live run either
+    # gets a real Nemotron response or the job fails with `LLMUnavailable`.
+    nebius_base_url: str = Field("https://api.studio.nebius.com/v1", alias="NEBIUS_BASE_URL")
+    nebius_api_key: str = Field("", alias="NEBIUS_API_KEY")
+    nebius_model: str = Field("nvidia/nemotron-3-super-120b-a12b", alias="NEBIUS_MODEL")
+    nebius_timeout_seconds: int = Field(120, ge=5, alias="NEBIUS_TIMEOUT_SECONDS")
+    nebius_max_retries: int = Field(2, ge=0, le=5, alias="NEBIUS_MAX_RETRIES")
+    nebius_rpm: int = Field(60, ge=1, alias="NEBIUS_RPM")
 
     # ── Simulation ────────────────────────────────────────────────────
     sim_seed: int = Field(20260918, ge=0, le=2**31 - 1, alias="SIM_SEED")

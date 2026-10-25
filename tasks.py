@@ -271,6 +271,12 @@ def target_repro_check(args: argparse.Namespace) -> None:
     run([py, "-m", "agentshield.scripts.repro_check"], cwd=API)
 
 
+def target_nebius_smoke(args: argparse.Namespace) -> None:
+    """Live Nebius Nemotron smoke test. Requires NEBIUS_API_KEY in env/.env."""
+    py = require_venv()
+    run([py, str(ROOT / "infra" / "scripts" / "nebius_smoke.py")], cwd=API)
+
+
 def target_run_task(args: argparse.Namespace) -> None:
     """Drive one agent task end to end through both gates."""
     py = require_venv()
@@ -397,6 +403,7 @@ TARGETS: dict[str, Target] = {
     "inspect-events": target_inspect_events,
     "check-secrets": target_check_secrets,
     "repro-check": target_repro_check,
+    "nebius-smoke": target_nebius_smoke,
     "run-task": target_run_task,
     "gate-repl": target_gate_repl,
     "train-risk": target_train_risk,
