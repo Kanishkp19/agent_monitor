@@ -15,7 +15,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
-import { ApiError, endpoints, type Policy } from '@/lib/api'
+import { type ApiError, endpoints, type Policy } from '@/lib/api'
 import { useSim } from '@/stores/simStore'
 import { useUi } from '@/stores/uiStore'
 import {

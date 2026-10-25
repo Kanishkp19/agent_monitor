@@ -18,7 +18,7 @@ import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
-import { ApiError, endpoints, type Policy } from '@/lib/api'
+import { type ApiError, endpoints, type Policy } from '@/lib/api'
 import { formatDelta, formatPercent, roleLabel } from '@/lib/format'
 import { useSim } from '@/stores/simStore'
 import { useUi } from '@/stores/uiStore'
