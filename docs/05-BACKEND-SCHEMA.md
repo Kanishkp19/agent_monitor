@@ -122,6 +122,7 @@ Every read in the system must appear in this table. If yours is not here, add it
 | A23 | Replay window (Policy Lab) | A10 with a wide `sk_between` |
 | A24 | Ground truth (evaluation only) | `query(pk=RUN#<id>, sk_prefix=GT#)` — **called only by `infra/scripts/evaluate.py`** |
 | A25 | Actions by tool (analytics) | `query(gsi1, pk=RUN#<id>#TOOL#<tool>, desc)` |
+| A26 | Autopilot job and report | `get(pk=AUTOPILOT#<job_id>, sk=JOB)`; events reuse A10 with `run_id=<job_id>` |
 
 ### 3.3 Label isolation, enforced in code
 

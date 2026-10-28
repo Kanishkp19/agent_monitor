@@ -25,7 +25,7 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'approve' | 'deny' | 'i
 
 const BUTTON: Record<ButtonVariant, string> = {
   primary:
-    'inline-flex items-center gap-1.5 h-8 px-3 rounded-sm bg-shield text-white font-ui ' +
+    'inline-flex items-center gap-1.5 h-8 px-3 rounded-sm bg-shield text-ink-950 font-ui ' +
     'text-[13px] font-medium hover:bg-shield-hover active:translate-y-px ' +
     'focus-visible:outline-none focus-visible:shadow-[var(--shadow-focus)] ' +
     'disabled:bg-ink-700 disabled:text-text-faint disabled:cursor-not-allowed ' +
@@ -155,7 +155,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        'bg-ink-800 border border-line rounded-md shadow-[var(--shadow-panel)]',
+        'console-panel bg-ink-800 border border-line rounded-md shadow-[var(--shadow-panel)]',
         className,
       )}
     >
@@ -467,16 +467,21 @@ export function ErrorState({
  * The simulation keeps running and the canvas stays interactive behind them.
  * Only the fast-forward and create-run dialogs use a backdrop, because those
  * two genuinely take over.
+ *
+ * `rail` reserves space for a fixed right-hand rail so the drawer never covers
+ * it: the office's SYSTEM LOG must stay readable while an employee is open.
  */
 export function Drawer({
   open,
   onClose,
   width = 'w-[420px]',
+  rail = 0,
   children,
 }: {
   open: boolean
   onClose: () => void
   width?: string
+  rail?: number
   children: ReactNode
 }) {
   if (!open) return null
@@ -486,11 +491,12 @@ export function Drawer({
       aria-modal="false"
       onKeyDown={(e) => e.key === 'Escape' && onClose()}
       className={cn(
-        'fixed right-0 top-14 bottom-0 z-40 bg-ink-800 border-l border-line',
+        'console-drawer fixed bottom-0 z-40 bg-ink-800 border-l border-line',
         'shadow-[var(--shadow-drawer)] overflow-y-auto',
         'animate-[drawerin_180ms_cubic-bezier(0.16,1,0.3,1)]',
         width,
       )}
+      style={{ right: rail }}
     >
       {children}
     </aside>

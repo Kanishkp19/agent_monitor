@@ -13,7 +13,7 @@
 
 import { useEffect } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import { Activity, Bell, Building2, ListFilter, ShieldCheck, SlidersHorizontal } from 'lucide-react'
+import { Activity, Bell, Building2, FlaskConical, ListFilter, ShieldCheck, SlidersHorizontal } from 'lucide-react'
 
 import { cn } from '@/lib/cn'
 import { formatSimTime } from '@/lib/format'
@@ -24,9 +24,11 @@ import { useUi, type ViewAs } from '@/stores/uiStore'
 import { Segmented } from '@/components/ui'
 
 const NAV = [
+  { to: '/autopilot', label: 'AUTOPILOT', icon: Activity },
   { to: '/office', label: 'OFFICE', icon: Building2 },
   { to: '/live', label: 'LIVE FEED', icon: ListFilter },
   { to: '/approvals', label: 'APPROVALS', icon: Bell },
+  { to: '/sandbox', label: 'SANDBOX', icon: FlaskConical },
   { to: '/control', label: 'CONTROL CENTER', icon: SlidersHorizontal },
 ]
 
@@ -47,7 +49,7 @@ export function AppShell({
   onFastForward?: () => void
 }) {
   return (
-    <div className="flex h-full flex-col bg-ink-900">
+    <div className="console-shell flex h-full flex-col bg-ink-900">
       <Header onFastForward={onFastForward} />
       <main
         className={cn(
@@ -75,12 +77,12 @@ function Header({ onFastForward }: { onFastForward?: () => void }) {
   const connected = useTelemetry((s) => s.connected)
 
   return (
-    <header className="flex h-14 shrink-0 items-center gap-1 border-b border-line bg-ink-900 px-4">
-      <NavLink to="/office" className="mr-2 flex items-center gap-2" aria-label="AgentShield">
-        <ShieldCheck className="h-5 w-5 text-shield" strokeWidth={2} />
+    <header className="console-header">
+      <NavLink to="/office" className="console-brand" aria-label="AgentShield">
+        <ShieldCheck className="h-6 w-6 text-shield" strokeWidth={1.75} /><span>AGENTSHIELD<small>AGENT GOVERNANCE CONSOLE</small></span>
       </NavLink>
 
-      <nav className="flex items-center">
+      <nav className="console-nav" aria-label="Main navigation">
         {NAV.map(({ to, label, icon: Icon }) => {
           const active = pathname.startsWith(to)
           return (
@@ -88,7 +90,7 @@ function Header({ onFastForward }: { onFastForward?: () => void }) {
               key={to}
               to={to}
               className={cn(
-                'relative inline-flex h-14 items-center gap-1.5 px-3 font-ui text-[13px]',
+                'relative inline-flex h-10 items-center gap-2 px-4 font-ui text-[12px]',
                 'transition-colors duration-100',
                 active
                   ? 'font-medium text-text after:absolute after:inset-x-3 after:bottom-0 after:h-0.5 after:bg-shield'
@@ -102,9 +104,9 @@ function Header({ onFastForward }: { onFastForward?: () => void }) {
         })}
       </nav>
 
-      <div className="flex-1" />
 
-      <div className="flex items-center gap-3">
+
+      <div className="console-controls">
         <RunPill />
         <SimClock simTs={simTs} speed={speed} />
         <SpeedControl onFastForward={onFastForward} />
@@ -186,10 +188,10 @@ function SpeedControl({ onFastForward }: { onFastForward?: () => void }) {
       options={[
         { value: 1, label: '▶ REAL TIME' },
         { value: 10, label: '▶▶ 10×' },
-        { value: 100, label: '▶▶▶ 100×' },
-        { value: 0, label: '⏸' },
+        { value: 0, label: '⏸ PAUSE' },
       ]}
     />
+
   )
 }
 

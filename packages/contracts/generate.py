@@ -85,7 +85,7 @@ def generate_python(schema: dict[str, Any]) -> str:
     events = schema["events"]
 
     uses_any = any(
-        py_type(fspec) == "Any"
+        "Any" in py_type(fspec)
         for spec in {**shared, **events}.values()
         for fspec in spec["properties"].values()
     )

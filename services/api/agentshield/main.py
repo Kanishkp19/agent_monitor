@@ -17,9 +17,11 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from agentshield.api import errors as error_handlers
 from agentshield.api import (
+    routes_autopilot,
     routes_core,
     routes_ingest,
     routes_metrics,
+    routes_playground,
     routes_policies,
     routes_risk,
     routes_sim,
@@ -59,6 +61,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         yield
     finally:
+        await services.autopilot.shutdown()
         await services.engine.stop()
         await container.shutdown()
 
@@ -95,6 +98,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.include_router(routes_risk.router, prefix=API_PREFIX)
     app.include_router(routes_metrics.router, prefix=API_PREFIX)
     app.include_router(routes_ingest.router, prefix=API_PREFIX)
+    app.include_router(routes_playground.router, prefix=API_PREFIX)
+    app.include_router(routes_autopilot.router, prefix=API_PREFIX)
     app.include_router(ws.router)
 
     @app.get("/healthz", tags=["health"])

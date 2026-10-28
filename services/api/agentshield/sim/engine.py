@@ -580,10 +580,24 @@ class SimulationEngine:
                     )
 
             # Let outstanding sessions drain before reporting totals.
-            for _ in range(50):
+            # The bound must be generous and the exit condition must be
+            # "sessions finished", not a fixed wall-clock slice: cutting a
+            # straggler at an arbitrary point makes the event stream depend on
+            # machine speed, which is exactly the non-reproducibility this
+            # method exists to prevent (a 1s cap tripped repro-check on a
+            # slower checkout -- same seed, different hashes).
+            drained = False
+            for _ in range(3_000):
                 if not state.active:
+                    drained = True
                     break
-                await asyncio.sleep(0.02)
+                await asyncio.sleep(0.01)
+            if not drained:
+                logger.warning(
+                    "advance() drain timeout; %d session(s) still active",
+                    len(state.active),
+                    extra={"run_id": run_id},
+                )
 
         finally:
             self._d.runner._d.llm = original_llm

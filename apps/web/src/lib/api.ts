@@ -81,6 +81,72 @@ export const api = {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// Sandbox playground (no sign-in; role comes from the demo bearer)
+// ──────────────────────────────────────────────────────────────────────
+
+export interface PlaygroundContext {
+  roles: { id: string; label: string; model: string; prod_access: boolean; experience: string }[]
+  models: { id: string; label: string }[]
+  repos: string[]
+  environments: string[]
+  task_types: string[]
+  tools: { name: string; description: string }[]
+}
+
+export interface PlaygroundDecision {
+  decision: 'allow' | 'redact' | 'review' | 'block'
+  reason: string
+  reason_code: string
+  policy_ids: string[]
+  matched_policies: { policy_id: string; priority: number; action: string }[]
+  routed_model?: string
+  est_cost_usd?: number
+  prompt?: string
+  redacted?: boolean
+  approval_id?: string | null
+  task_id: string
+  target_resource?: string
+  executed?: boolean
+  result?: { ok?: boolean; output?: string; error?: string | null; duration_ms?: number }
+}
+
+export const playground = {
+  context: () => api.get<PlaygroundContext>('/playground/context'),
+  gate1: (body: {
+    role: string
+    task_type: string
+    complexity: string
+    repo: string
+    environment: string
+    prompt: string
+    requested_model?: string
+  }) =>
+    request<{ data: PlaygroundDecision }>('/playground/gate1', {
+      method: 'POST',
+      headers: { Authorization: `Bearer demo-${body.role}` },
+      body: JSON.stringify(body),
+    }).then((r) => r.data),
+  createTask: (body: { role: string; title: string; repo: string; environment: string }) =>
+    request<{ data: { task_id: string; run_id: string } }>('/playground/tasks/create', {
+      method: 'POST',
+      headers: { Authorization: `Bearer demo-${body.role}` },
+      body: JSON.stringify(body),
+    }).then((r) => r.data),
+  tool: (body: {
+    role: string
+    task_id: string
+    tool: string
+    args: Record<string, unknown>
+    iteration?: number
+  }) =>
+    request<{ data: PlaygroundDecision }>('/playground/tool', {
+      method: 'POST',
+      headers: { Authorization: `Bearer demo-${body.role}` },
+      body: JSON.stringify(body),
+    }).then((r) => r.data),
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // Endpoint helpers
 // ──────────────────────────────────────────────────────────────────────
 

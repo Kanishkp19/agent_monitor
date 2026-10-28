@@ -1,4 +1,37 @@
-# `src/game/` — the Phaser office
+# `src/game/` — Canvas office
+
+The current office uses `OfficeSimulation.tsx`, `engine/WorldRenderer.ts`
+and the navigation/motion/behavior modules. It reads `useSim` directly;
+the Phaser modules described in the historical notes below were removed.
+
+The first rebuild milestone is available in development at
+`/office?scene=development` (or the **New floor preview** button). **Current
+office** returns to the existing view. The employee query parameter survives
+switching views; live selections still open the existing drawer. Simple view
+continues to use the same store. The preview intentionally shows four employees.
+
+`DevelopmentScene.ts` owns geometry, seat anchors, doorway and collision data.
+`DevelopmentRenderer.ts` supplies an original Canvas vector kit, cached floor
+and separate depth-sorted desks, monitors, chairs and people. No external art
+or new asset license is involved. Art contract: 64×32 tiles, 48px standing
+people, 26px tabletops, 72px rear walls, northwest lighting, muted daylight
+palette; feet are the world anchor. Foreground partitions are cut away.
+
+`/development-floor.html` mounts the same component without the API. Fixtures
+require explicitly choosing **Try demo fixtures** and never write to the store
+or open a real employee drawer. **Preview walk** starts a deterministic path
+through the doorway and break point; policy/task states always come from the
+store. Reduced motion disables that decorative walk. The walk follows pause
+and speed state, capped at 3× for readable motion.
+
+Focused checks: `npm test -- src/game/__tests__/navgrid.test.ts
+src/game/__tests__/development-scene.test.ts src/__tests__/office-isolation.test.ts`
+and `npm run typecheck`. With Vite running, `node scripts/verify-office-preview.mjs`
+uses Playwright (or `PLAYWRIGHT_MODULE`) and installed Chrome to save evidence
+under `docs/office-rebuild-evidence/`. Desktop acceptance and five-room
+expansion remain separate from this preview; no sustained performance claim.
+
+## Historical Phaser design notes
 
 **Nothing in this directory may fetch.**
 

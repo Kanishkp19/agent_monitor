@@ -1,4 +1,4 @@
-﻿aioboto3==13.2.0
+aioboto3==13.2.0
 aiobotocore==2.15.2
 aiofiles==25.1.0
 aiohappyeyeballs==2.7.1
@@ -54,7 +54,7 @@ pytest-benchmark==4.0.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.3
 pytz==2026.3.post1
-pywin32==312
+pywin32==312; sys_platform == 'win32'
 PyYAML==6.0.3
 requests==2.34.2
 responses==0.26.3

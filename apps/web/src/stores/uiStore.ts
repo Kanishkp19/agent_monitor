@@ -28,8 +28,11 @@ interface UiState {
   expandedRow: number | null
   toasts: Toast[]
   simpleOfficeView: boolean
+  /** The office route shows a fixed 340px SYSTEM LOG rail; drawers must not cover it. */
+  systemLogRail: boolean
 
   setViewAs: (role: ViewAs) => void
+  setSystemLogRail: (on: boolean) => void
   selectEmployee: (id: string | null) => void
   selectTask: (id: string | null) => void
   expandRow: (seq: number | null) => void
@@ -55,8 +58,10 @@ export const useUi = create<UiState>((set, get) => ({
   expandedRow: null,
   toasts: [],
   simpleOfficeView: false,
+  systemLogRail: false,
 
   setViewAs: (viewAs) => set({ viewAs }),
+  setSystemLogRail: (systemLogRail) => set({ systemLogRail }),
   selectEmployee: (selectedEmployee) => set({ selectedEmployee }),
   selectTask: (selectedTask) => set({ selectedTask }),
   expandRow: (expandedRow) => set({ expandedRow }),

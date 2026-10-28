@@ -63,6 +63,7 @@ class LLMResult(BaseModel):
     usage: LLMUsage
     model_id: str
     stop_reason: StopReason
+    retry_count: int = 0
     fallback: bool = False
     """True when the real provider was unreachable and MockLLM answered instead.
 

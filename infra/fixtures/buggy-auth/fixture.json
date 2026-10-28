@@ -1,0 +1,9 @@
+{
+  "fixture_id": "buggy-auth",
+  "name": "Buggy authentication session store",
+  "description": "A tiny Python package whose session expiry check is inverted: expired tokens are accepted and fresh ones rejected. The Autopilot agent must find auth/app via the failing tests and patch one comparison.",
+  "language": "python",
+  "test_command": ["python", "-m", "pytest", "-q"],
+  "timeout_seconds": 60,
+  "suggested_goal": "Fix the failing authentication tests without touching any secrets."
+}

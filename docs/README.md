@@ -130,6 +130,10 @@ Read in this order. Each doc assumes the ones above it.
 
 | File | What it's for |
 |---|---|
+| **[`architecture.md`](./architecture.md)** | **Plain-English architecture.** Every layer, flow and invariant explained with diagrams — office bots, Sandbox, agent integration, risk engine. Start here if the spec docs feel heavy. |
+| **[`GUIDE.md`](./GUIDE.md)** | **Operating manual.** Run it, drive the office, use the Sandbox, change rules, integrate Claude Code/Codex/MCP, and test everything — with expected outputs. |
+| **[`09-AGENT-INTEGRATION.md`](./09-AGENT-INTEGRATION.md)** | Connecting real coding agents: the universal hook, MCP `agentshield_gate`, Claude Code hooks, Codex config, the 8-tool mapping. |
+| **[`graph/GRAPH.md`](./graph/GRAPH.md)** | **The codebase map (graphify).** Layer diagram, both data-flow walkthroughs, the 12 invariants with their enforcement, node index, key layout. Machine-readable twin: [`graph/graph.json`](./graph/graph.json). Start here if you are an agent — or a human who wants the whole shape in ten minutes. |
 | **`00-MASTER-PROMPT.md`** | **Start here.** Project summary, hard constraints, tech stack, full folder tree, 12 agent operating rules, build order, Definition of Done. This is the file you paste into your coding agent. |
 | `01-PRD.md` | Personas, features F1–F12 with acceptance criteria, 20 user stories, non-goals, success metrics. |
 | `DESIGN.md` | System architecture. The portability contract, both gate algorithms, the simulation engine, risk maths, label isolation, decisions log D1–D10. |

@@ -280,6 +280,40 @@
       "required": ["incident_id", "employee_id", "detector", "score", "summary", "evidence_count"]
     },
 
+    "autopilot.state": {
+      "emitted_by": "autopilot/runner.py", "office": false,
+      "properties": { "state": { "type": "string" } },
+      "required": ["state"]
+    },
+    "autopilot.gate": {
+      "emitted_by": "autopilot/runner.py", "office": false,
+      "properties": { "gate": { "type": "integer" }, "tool": { "type": "string" },
+        "path": { "type": "string" }, "decision": { "type": "string" },
+        "reason": { "type": "string" } },
+      "required": ["gate", "decision", "reason"]
+    },
+    "autopilot.model": {
+      "emitted_by": "autopilot/runner.py", "office": false,
+      "properties": { "provider": { "type": "string" }, "model_id": { "type": "string" },
+        "tokens_in": { "type": "integer" }, "tokens_out": { "type": "integer" },
+        "latency_ms": { "type": "number" }, "retry_count": { "type": "integer" },
+        "is_mock": { "type": "boolean" } },
+      "required": ["provider", "model_id", "tokens_in", "tokens_out", "latency_ms", "is_mock"]
+    },
+    "autopilot.action": {
+      "emitted_by": "autopilot/runner.py", "office": false,
+      "properties": { "tool": { "type": "string" }, "args": { "type": "string" },
+        "decision": { "type": "string" }, "result": { "type": "object" } },
+      "required": ["tool", "decision", "result"]
+    },
+    "autopilot.test": {
+      "emitted_by": "autopilot/runner.py", "office": false,
+      "properties": { "phase": { "type": "string" }, "passed": { "type": "boolean" },
+        "exit_code": { "type": "integer" }, "stdout": { "type": "string" },
+        "stderr": { "type": "string" }, "duration_ms": { "type": "number" },
+        "timed_out": { "type": "boolean" }, "summary_line": { "type": "string" } },
+      "required": ["phase", "passed", "exit_code", "stdout", "stderr", "duration_ms"]
+    },
     "audit.raw_access": {
       "emitted_by": "the blob store reader",
       "office": false,

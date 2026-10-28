@@ -18,6 +18,8 @@ import { riskColor } from '@/lib/risk'
 import { useSim } from '@/stores/simStore'
 import type { AvatarState } from '@/lib/api'
 import { EmptyState } from '@/components/ui'
+import { CharacterSprite } from '@/components/CharacterSprite'
+import { getEmployeeSprite } from '@/game/engine/EmployeeCatalog'
 
 const FSM_DOT: Record<AvatarState['fsm'], { color: string; glyph: string; label: string }> = {
   working: { color: 'bg-allow', glyph: '●', label: 'Working' },
@@ -64,6 +66,7 @@ function AvatarCard({
 }) {
   const state = FSM_DOT[avatar.fsm]
   const flagged = avatar.badge === 'anomaly'
+  const sprite = getEmployeeSprite(avatar.employee_id)
 
   return (
     <div
@@ -83,7 +86,13 @@ function AvatarCard({
       )}
     >
       <div className="flex items-start gap-2">
-        <div className="h-8 w-8 shrink-0 rounded-sm bg-ink-700" aria-hidden />
+        <CharacterSprite
+          colIndex={sprite.col}
+          rowIndex={sprite.row}
+          status={avatar.fsm}
+          scale={1.0}
+          className="shrink-0"
+        />
         <div className="min-w-0 flex-1">
           <p className="truncate font-ui text-[13px] font-medium text-text">{avatar.name}</p>
           <p className="truncate font-ui text-[11px] text-text-dim">

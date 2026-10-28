@@ -147,6 +147,31 @@ async def test_usage_and_tool_calls_are_normalised() -> None:
     assert result.stop_reason == "tool_use"
 
 
+async def test_malformed_tool_arguments_fail_explicitly() -> None:
+    body = _nebius_body()
+    body["choices"][0]["message"]["tool_calls"][0]["function"]["arguments"] = "{bad"
+    adapter, _ = _adapter(_FakeResponse(body=body))
+    with pytest.raises(LLMProviderError, match="malformed tool arguments"):
+        await adapter.complete(messages=_MESSAGES, tools=_TOOLS, model="standard")
+
+
+async def test_multi_tool_history_is_translated_for_provider() -> None:
+    adapter, client = _adapter(None)
+    history = [
+        {"role": "user", "content": "Inspect two files"},
+        {"role": "assistant", "content": "", "tool_calls": [
+            {"id": "one", "name": "read_file", "arguments": {"path": "app/auth.py"}},
+            {"id": "two", "name": "read_file", "arguments": {"path": "tests/test_auth.py"}},
+        ]},
+        {"role": "user", "tool_call_id": "one", "content": "first file"},
+        {"role": "user", "tool_call_id": "two", "content": "second file"},
+    ]
+    await adapter.complete(messages=history, tools=_TOOLS, model="standard")
+    wire = client.calls[0]["json"]["messages"]
+    assert len(wire[1]["tool_calls"]) == 2
+    assert wire[2]["role"] == "tool" and wire[3]["tool_call_id"] == "two"
+
+
 async def test_translates_tools_and_auth_header() -> None:
     adapter, client = _adapter(None)
     await adapter.complete(messages=_MESSAGES, tools=_TOOLS, model="standard")

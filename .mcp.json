@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "agentshield": {
+      "command": "python",
+      "args": ["infra/mcp/agentshield_mcp_server.py"],
+      "cwd": ".",
+      "env": {},
+      "description": "AgentShield project tools: graph query, whitelisted tasks.py runner, live API inspector, docs search"
+    },
+    "chrome-devtools": {
+      "command": "npx",
+      "args": ["-y", "chrome-devtools-mcp@latest"],
+      "env": {},
+      "description": "Chrome DevTools for the running app: console, network, performance traces, screenshots of localhost:5173"
+    },
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {},
+      "description": "Up-to-date library docs (React 19, Tailwind v4, canvas, Zustand) injected into prompts"
+    }
+  }
+}

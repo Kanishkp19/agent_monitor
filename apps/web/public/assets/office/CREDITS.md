@@ -8,15 +8,18 @@ exemption.
 
 | File | Source | Author | Licence |
 |---|---|---|---|
-| `tileset.png` | generated | `infra/scripts/make_placeholder_atlas.py` | project-owned |
-| `characters.png` | generated | `infra/scripts/make_placeholder_atlas.py` | project-owned |
-| `office-map.json` | hand-written | this project | project-owned |
+| `rooms/*.png` | generated via Nano Banana (Gemini Image Model), then warped to the canonical 64x32 projection by `infra/scripts/normalize_rooms.py` | AgentShield / Google DeepMind | project-owned |
+| `characters/atlas.png` + `atlas.json` | procedural pixel-art generator (walk/idle/type/sit, 4 facings, outlines + accessories) | `infra/scripts/make_character_atlas.py` | project-owned |
+| `characters/*.png` (single-pose fallbacks) | procedural | `infra/scripts/make_placeholder_atlas.py` | project-owned |
+| `meeting_crop_grid.png`, `seats.html`, `crop.html`, `calibrate.html` | dev-only calibration artifacts | `infra/scripts/extract_furniture.py` / harness pages | project-owned, not shipped UI |
 
-The placeholder atlas is flat-coloured diamonds and blocky figures in the
-console's own ink palette. It is deliberately the *first* thing built in the
-visual phase: everything in the scene works against it, so the office is never
-blocked on an art decision, and real art drops in by replacing two PNGs and
-their JSON with zero code change.
+Originals of the room art (pre-warp) are kept in `office/rooms_original/` —
+`normalize_rooms.py` re-derives `rooms/*.png` from them, so never edit the
+normalized PNGs by hand.
+
+The 5 office rooms (`ceo_office`, `managers`, `dev_floor`, `devops`, `meeting_room`)
+are pre-rendered 2:1 isometric cutaway diorama PNGs with transparent outer voids,
+generated via Nano Banana and composited directly onto the canvas.
 
 ## Fonts
 

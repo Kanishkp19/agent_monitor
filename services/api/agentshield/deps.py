@@ -15,6 +15,8 @@ from functools import lru_cache
 from typing import Any
 
 from agentshield.agent.runner import AgentRunner, RunnerDeps
+from agentshield.autopilot.runner import AutopilotCoordinator
+from agentshield.autopilot.workspace import WorkspaceManager
 from agentshield.container import Container, get_container
 from agentshield.domain.enums import Source
 from agentshield.governance.approvals import ApprovalEngine
@@ -95,6 +97,25 @@ class Services:
             redaction_enabled=settings.redaction_enabled,
         )
         self.gate2 = Gate2(policies=self.policies)
+
+        self.autopilot = AutopilotCoordinator(
+            manager=WorkspaceManager(
+                fixtures_dir=settings.autopilot_fixtures_path,
+                workspaces_dir=settings.autopilot_workspaces_path,
+            ),
+            llm=container.autopilot_llm,
+            gate1=self.gate1,
+            gate2=self.gate2,
+            store=container.docstore,
+            emitter=TelemetryEmitter(
+                docstore=container.docstore,
+                bus=container.bus,
+                metrics=container.metrics,
+                clock=container.clock,
+                source=Source.LIVE,
+                broadcaster=self.hub.broadcast,
+            ),
+        )
 
         self.approvals = ApprovalEngine(
             docstore=container.docstore,

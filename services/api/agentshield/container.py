@@ -41,6 +41,11 @@ class Container:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
+        from agentshield.adapters.local.nebius_llm import NebiusAdapter
+
+        # Autopilot always uses the live Nebius adapter, regardless of the
+        # simulator's selected provider.
+        self.autopilot_llm: LLMPort = NebiusAdapter(settings)
 
         # ClockPort has a single implementation in both environments.
         self.clock: ClockPort = SimClock(

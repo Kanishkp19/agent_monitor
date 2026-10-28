@@ -32,12 +32,14 @@ import OfficeRoute, { FastForwardDialog } from '@/routes/office'
 import LiveFeedRoute from '@/routes/live'
 import ApprovalsRoute from '@/routes/approvals'
 import ControlOverviewRoute from '@/routes/control/index'
+import SandboxRoute from '@/routes/sandbox'
 import PoliciesRoute from '@/routes/control/policies'
 import PolicyLabRoute from '@/routes/control/policy-lab'
 import EmployeesRoute from '@/routes/control/employees'
 import CostsRoute from '@/routes/control/costs'
 import RiskRoute from '@/routes/control/risk'
 import IncidentsRoute from '@/routes/control/incidents'
+import AutopilotRoute from '@/routes/autopilot'
 
 import '@/styles/globals.css'
 
@@ -73,6 +75,10 @@ function Shell() {
   useStream(run?.id)
 
   const fullBleed = pathname.startsWith('/office')
+
+  if (pathname.startsWith('/autopilot')) {
+    return <AppShell><AutopilotRoute /></AppShell>
+  }
 
   if (error) {
     return (
@@ -117,6 +123,8 @@ function Shell() {
         <Route path="/live" element={<LiveFeedRoute />} />
         <Route path="/live/:taskId" element={<LiveFeedRoute />} />
         <Route path="/approvals" element={<ApprovalsRoute />} />
+        <Route path="/sandbox" element={<SandboxRoute />} />
+        <Route path="/autopilot" element={<AutopilotRoute />} />
 
         <Route path="/control" element={<ControlLayout />}>
           <Route index element={<ControlOverviewRoute />} />

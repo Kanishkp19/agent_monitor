@@ -11,7 +11,7 @@
  * `Simple view`. The grid is a legitimate mode, not a fallback of last resort.
  */
 
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { cn } from '@/lib/cn'
@@ -23,23 +23,24 @@ import { useUi } from '@/stores/uiStore'
 import { AvatarGrid } from '@/components/office/AvatarGrid'
 import { EmployeeDrawer } from '@/components/employee/EmployeeDrawer'
 import { Button, Dialog, Segmented } from '@/components/ui'
-
-// Phaser is ~1.2MB. Loading it lazily keeps the console's first paint off the
-// critical path of a game engine, and means a reader who never opens the
-// office never downloads one.
-const PhaserGame = lazy(() =>
-  import('@/game/PhaserGame').then((m) => ({ default: m.PhaserGame })),
-)
+import { ReferenceOffice } from '@/game/ReferenceOffice'
+import { DevelopmentFloor } from '@/game/DevelopmentFloor'
 
 export default function OfficeRoute() {
   const [params, setParams] = useSearchParams()
   const selectedEmployee = params.get('employee')
+  const [showLog, setShowLog] = useState(false)
+  const floorPreview = import.meta.env.DEV && params.get('scene') === 'development'
 
   const simpleView = useUi((s) => s.simpleOfficeView)
   const toggleSimple = useUi((s) => s.toggleSimpleView)
 
-  const [webglFailed, setWebglFailed] = useState(!hasWebGL())
-  const useCanvas = !simpleView && !webglFailed
+  // Keep the employee drawer aligned with the optional system-log rail.
+  const setSystemLogRail = useUi((s) => s.setSystemLogRail)
+  useEffect(() => {
+    setSystemLogRail(showLog)
+    return () => setSystemLogRail(false)
+  }, [setSystemLogRail, showLog])
 
   const select = (employeeId: string | null) => {
     const next = new URLSearchParams(params)
@@ -51,73 +52,71 @@ export default function OfficeRoute() {
   return (
     <div className="flex h-full">
       <div className="relative min-w-0 flex-1 bg-ink-950">
-        {useCanvas ? (
-          <Suspense fallback={<CanvasLoading />}>
-            <PhaserGame onSelect={select} onError={() => setWebglFailed(true)} />
-          </Suspense>
+        <div className="office-action-dock absolute right-4 top-20 z-20 flex gap-2">
+          <button
+            className="rounded border border-line bg-ink-800 px-3 py-1 text-xs text-text"
+            onClick={() => toggleSimple()}
+          >
+            {simpleView ? 'Office view' : 'Simple view'}
+          </button>
+          <button
+            className="rounded border border-line bg-ink-800 px-3 py-1 text-xs text-text"
+            aria-pressed={showLog}
+            onClick={() => setShowLog(!showLog)}
+          >
+            {showLog ? 'Hide system log' : 'System log'}
+          </button>
+          {import.meta.env.DEV && (
+            <button
+              className="rounded border border-line bg-ink-800 px-3 py-1 text-xs text-text"
+              onClick={() => {
+                const next = new URLSearchParams(params)
+                if (floorPreview) next.delete('scene')
+                else next.set('scene', 'development')
+                setParams(next)
+              }}
+            >
+              {floorPreview ? '5-Room Office' : 'Dev Floor Study'}
+            </button>
+          )}
+        </div>
+        {!simpleView ? (
+          floorPreview ? (
+            <DevelopmentFloor onSelect={select} selectedId={selectedEmployee} />
+          ) : (
+            <ReferenceOffice onSelect={select} selectedId={selectedEmployee} />
+          )
         ) : (
-          <div className="h-full overflow-y-auto">
-            {webglFailed && !simpleView && (
-              <div className="flex items-center gap-3 border-b border-line bg-ink-800 px-4 py-2">
-                <p className="flex-1 font-ui text-[12px] text-text-dim">
-                  Couldn&apos;t load the floor. Showing a simple view.
-                </p>
-                <Button variant="ghost" onClick={() => setWebglFailed(false)}>
-                  Retry
-                </Button>
-              </div>
-            )}
+          <div className="relative h-full overflow-y-auto">
             <AvatarGrid onSelect={select} />
+            <div className="sticky bottom-4 mr-4 flex justify-end">
+              <button
+                onClick={() => toggleSimple()}
+                className="flex h-7.5 items-center gap-2 rounded-sm border border-line bg-ink-800 px-3 text-xs text-text-dim shadow-panel transition-colors hover:border-line-strong hover:text-text"
+              >
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <rect x="3" y="3" width="7" height="7" />
+                  <rect x="14" y="3" width="7" height="7" />
+                  <rect x="3" y="14" width="7" height="7" />
+                  <rect x="14" y="14" width="7" height="7" />
+                </svg>
+                Office view
+              </button>
+            </div>
           </div>
         )}
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between p-3">
-          <div className="pointer-events-auto">
-            <Segmented
-              value={simpleView ? 'grid' : 'canvas'}
-              onChange={() => toggleSimple()}
-              options={[
-                { value: 'canvas', label: 'Office' },
-                { value: 'grid', label: 'Simple view' },
-              ]}
-            />
-          </div>
-          <Legend />
-        </div>
       </div>
 
-      <SystemLog />
+      {showLog && <SystemLog />}
 
       <EmployeeDrawer employeeId={selectedEmployee} onClose={() => select(null)} />
-    </div>
-  )
-}
-
-function CanvasLoading() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 bg-ink-950">
-      <p className="font-pixel text-[13px] tracking-[0.02em] text-text-dim">
-        Loading the floor…
-      </p>
-    </div>
-  )
-}
-
-function Legend() {
-  const items = [
-    { label: 'working', color: 'bg-allow' },
-    { label: 'waiting', color: 'bg-review' },
-    { label: 'blocked', color: 'bg-block' },
-    { label: 'idle', color: 'bg-idle' },
-  ]
-  return (
-    <div className="flex items-center gap-3 rounded-sm border border-line bg-ink-800/80 px-3 py-1.5 backdrop-blur-sm">
-      {items.map((item) => (
-        <span key={item.label} className="flex items-center gap-1.5">
-          <span className={cn('h-1.5 w-1.5 rounded-full', item.color)} />
-          <span className="font-ui text-[11px] text-text-dim">{item.label}</span>
-        </span>
-      ))}
     </div>
   )
 }
@@ -150,16 +149,18 @@ function SystemLog() {
   const reversed = [...log].reverse()
 
   return (
-    <aside className="flex w-[340px] shrink-0 flex-col border-l border-line bg-ink-900">
-      <header className="flex h-10 shrink-0 items-center justify-between border-b border-line px-3">
-        <h2 className="font-ui text-[11px] font-medium text-text-faint">SYSTEM LOG</h2>
+    <aside className="flex w-[340px] shrink-0 flex-col border-l border-line bg-[#0D1522] shadow-[-8px_0_32px_#00000030]">
+      <header className="flex h-10 shrink-0 items-center justify-center relative border-b border-line px-3">
+        <h2 className="font-ui text-[11px] font-semibold tracking-[0.12em] text-text-dim text-center">
+          SYSTEM LOG
+        </h2>
         {!stuck && unseen > 0 && (
           <button
             onClick={() => {
               setStuck(true)
               if (ref.current) ref.current.scrollTop = 0
             }}
-            className="rounded-xs bg-shield-subtle px-1.5 py-0.5 font-mono text-[10px] text-shield"
+            className="absolute right-3 rounded-xs bg-shield-subtle px-1.5 py-0.5 font-mono text-[10px] text-shield"
           >
             ↓ {unseen} new
           </button>
@@ -174,9 +175,10 @@ function SystemLog() {
         aria-relevant="additions"
       >
         {log.length === 0 && (
-          <p className="p-3 font-ui text-[12px] text-text-faint">
-            Waiting for the first request. Press ▶ to start.
-          </p>
+          <div className="p-4 font-mono text-[11px] text-text-faint text-center space-y-2">
+            <p>Waiting for the first request.</p>
+            <p className="text-[10px] text-text-faint/80">Press ▶ Real time to start.</p>
+          </div>
         )}
 
         {reversed.map((event) => {
@@ -198,7 +200,7 @@ function SystemLog() {
                     described.decision === 'block' && 'text-block',
                   )}
                 >
-                  {described.decision.toUpperCase()}
+                  {described.decision === 'block' ? '- Blocked by AGENTSHIELD Gate 2' : described.decision.toUpperCase()}
                 </span>
               )}
             </div>
@@ -206,6 +208,7 @@ function SystemLog() {
         })}
       </div>
     </aside>
+
   )
 }
 
@@ -351,24 +354,4 @@ function SummaryRow({ label, value }: { label: string; value: string | number })
       </dd>
     </div>
   )
-}
-
-/**
- * Probe for WebGL before Phaser tries.
- *
- * Phaser falls back to Canvas on its own, but a machine with no WebGL at all
- * is also a machine where the card grid is the better experience -- and
- * finding out by catching an init failure means a blank frame first.
- */
-function hasWebGL(): boolean {
-  try {
-    const canvas = document.createElement('canvas')
-    return Boolean(
-      canvas.getContext('webgl2') ??
-        canvas.getContext('webgl') ??
-        canvas.getContext('experimental-webgl'),
-    )
-  } catch {
-    return false
-  }
 }

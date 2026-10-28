@@ -7,6 +7,8 @@ Regenerate with `python tasks.py contracts`.
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -272,6 +274,66 @@ class IncidentOpenedPayload(BaseModel):
     evidence_count: int
 
 
+class AutopilotStatePayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    """`autopilot.state` -- emitted by autopilot/runner.py.
+    """
+
+    state: str
+
+
+class AutopilotGatePayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    """`autopilot.gate` -- emitted by autopilot/runner.py.
+    """
+
+    gate: int
+    tool: str = ""
+    path: str = ""
+    decision: str
+    reason: str
+
+
+class AutopilotModelPayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    """`autopilot.model` -- emitted by autopilot/runner.py.
+    """
+
+    provider: str
+    model_id: str
+    tokens_in: int
+    tokens_out: int
+    latency_ms: float
+    retry_count: int = 0
+    is_mock: bool
+
+
+class AutopilotActionPayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    """`autopilot.action` -- emitted by autopilot/runner.py.
+    """
+
+    tool: str
+    args: str = ""
+    decision: str
+    result: dict[str, Any]
+
+
+class AutopilotTestPayload(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+    """`autopilot.test` -- emitted by autopilot/runner.py.
+    """
+
+    phase: str
+    passed: bool
+    exit_code: int
+    stdout: str
+    stderr: str
+    duration_ms: float
+    timed_out: bool = False
+    summary_line: str = ""
+
+
 class AuditRawAccessPayload(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
     """`audit.raw_access` -- emitted by the blob store reader.
@@ -303,6 +365,11 @@ EVENT_PAYLOADS: dict[str, type[BaseModel]] = {
     "budget.exceeded": BudgetExceededPayload,
     "risk.updated": RiskUpdatedPayload,
     "incident.opened": IncidentOpenedPayload,
+    "autopilot.state": AutopilotStatePayload,
+    "autopilot.gate": AutopilotGatePayload,
+    "autopilot.model": AutopilotModelPayload,
+    "autopilot.action": AutopilotActionPayload,
+    "autopilot.test": AutopilotTestPayload,
     "audit.raw_access": AuditRawAccessPayload,
 }
 

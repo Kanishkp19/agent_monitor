@@ -252,6 +252,61 @@ export interface IncidentOpenedPayload {
 }
 
 /**
+ * `autopilot.state` -- emitted by autopilot/runner.py.
+ */
+export interface AutopilotStatePayload {
+  state: string
+}
+
+/**
+ * `autopilot.gate` -- emitted by autopilot/runner.py.
+ */
+export interface AutopilotGatePayload {
+  gate: number
+  tool?: string
+  path?: string
+  decision: string
+  reason: string
+}
+
+/**
+ * `autopilot.model` -- emitted by autopilot/runner.py.
+ */
+export interface AutopilotModelPayload {
+  provider: string
+  model_id: string
+  tokens_in: number
+  tokens_out: number
+  latency_ms: number
+  retry_count?: number
+  is_mock: boolean
+}
+
+/**
+ * `autopilot.action` -- emitted by autopilot/runner.py.
+ */
+export interface AutopilotActionPayload {
+  tool: string
+  args?: string
+  decision: string
+  result: Record<string, unknown>
+}
+
+/**
+ * `autopilot.test` -- emitted by autopilot/runner.py.
+ */
+export interface AutopilotTestPayload {
+  phase: string
+  passed: boolean
+  exit_code: number
+  stdout: string
+  stderr: string
+  duration_ms: number
+  timed_out?: boolean
+  summary_line?: string
+}
+
+/**
  * `audit.raw_access` -- emitted by the blob store reader.
  *
  * The blob store is the only home for raw prompts, and every read of one is audited. Without this the redaction guarantee is unverifiable.
@@ -281,6 +336,11 @@ export type EventDetailType =
   | 'budget.exceeded'
   | 'risk.updated'
   | 'incident.opened'
+  | 'autopilot.state'
+  | 'autopilot.gate'
+  | 'autopilot.model'
+  | 'autopilot.action'
+  | 'autopilot.test'
   | 'audit.raw_access'
 
 export interface EventPayloadMap {
@@ -301,6 +361,11 @@ export interface EventPayloadMap {
   'budget.exceeded': BudgetExceededPayload
   'risk.updated': RiskUpdatedPayload
   'incident.opened': IncidentOpenedPayload
+  'autopilot.state': AutopilotStatePayload
+  'autopilot.gate': AutopilotGatePayload
+  'autopilot.model': AutopilotModelPayload
+  'autopilot.action': AutopilotActionPayload
+  'autopilot.test': AutopilotTestPayload
   'audit.raw_access': AuditRawAccessPayload
 }
 
@@ -322,6 +387,11 @@ export const EVENT_TYPES: readonly EventDetailType[] = [
   'budget.exceeded',
   'risk.updated',
   'incident.opened',
+  'autopilot.state',
+  'autopilot.gate',
+  'autopilot.model',
+  'autopilot.action',
+  'autopilot.test',
   'audit.raw_access',
 ] as const
 

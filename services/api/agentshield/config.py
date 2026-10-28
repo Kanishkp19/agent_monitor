@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     """Every variable from `docs/02-TRD.md` section 4, typed and validated."""
 
     model_config = SettingsConfigDict(
-        env_file=(REPO_ROOT / ".env"),
+        env_file=(REPO_ROOT / ".env", REPO_ROOT / "services/api/.env"),
         env_file_encoding="utf-8",
         extra="ignore",
         case_sensitive=False,
@@ -83,6 +83,13 @@ class Settings(BaseSettings):
     nebius_timeout_seconds: int = Field(120, ge=5, alias="NEBIUS_TIMEOUT_SECONDS")
     nebius_max_retries: int = Field(2, ge=0, le=5, alias="NEBIUS_MAX_RETRIES")
     nebius_rpm: int = Field(60, ge=1, alias="NEBIUS_RPM")
+    autopilot_demo_token: str = Field("", alias="AUTOPILOT_DEMO_TOKEN")
+
+    # ── Autopilot (live coding engine) ────────────────────────────────
+    autopilot_fixtures_dir: str = Field("./infra/fixtures", alias="AUTOPILOT_FIXTURES_DIR")
+    autopilot_workspaces_dir: str = Field(
+        "./.data/autopilot-workspaces", alias="AUTOPILOT_WORKSPACES_DIR"
+    )
 
     # ── Simulation ────────────────────────────────────────────────────
     sim_seed: int = Field(20260918, ge=0, le=2**31 - 1, alias="SIM_SEED")
@@ -174,6 +181,14 @@ class Settings(BaseSettings):
     @cached_property
     def scenario_path(self) -> Path:
         return self._resolve(self.sim_scenario_file)
+
+    @cached_property
+    def autopilot_fixtures_path(self) -> Path:
+        return self._resolve(self.autopilot_fixtures_dir)
+
+    @cached_property
+    def autopilot_workspaces_path(self) -> Path:
+        return self._resolve(self.autopilot_workspaces_dir)
 
     @staticmethod
     def _resolve(value: str) -> Path:

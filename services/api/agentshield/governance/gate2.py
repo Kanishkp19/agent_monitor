@@ -94,6 +94,15 @@ class Gate2:
         ordered = precedence.sort_for_trace(matches)
         effect, attributed = precedence.resolve(matches)
 
+        if context.is_secret_path:
+            return DecisionResult(
+                decision=Decision.BLOCK,
+                reason_code="secret_path",
+                matched_policies=ordered,
+                message="Secret paths are blocked.",
+                latency_ms=_elapsed_ms(started),
+            )
+
         # Gate 2 has no redact. If a policy somehow carries one, it is treated
         # as a review -- degrading toward more scrutiny, never less.
         if effect is Decision.REDACT:

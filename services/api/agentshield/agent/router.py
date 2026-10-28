@@ -50,6 +50,16 @@ PRICE_TABLE: dict[str, ModelPrice] = {
     "mock:trivial": ModelPrice("mock:trivial", 0.80, 4.00),
     "mock:standard": ModelPrice("mock:standard", 0.80, 4.00),
     "mock:complex": ModelPrice("mock:complex", 3.00, 15.00),
+    # Free cloud tiers (Groq's current catalog: gpt-oss). Nothing is billed at
+    # these rates, but pricing them at their real cloud equivalents keeps the
+    # cost story intact: a route_override that downgrades 120b -> 20b must
+    # still show a real saving, and an unpriced model would punch a hole in
+    # the spend figures.
+    "openai/gpt-oss-20b": ModelPrice("openai/gpt-oss-20b", 0.80, 4.00),
+    "openai/gpt-oss-120b": ModelPrice("openai/gpt-oss-120b", 3.00, 15.00),
+    # Retired Groq ids, kept so historical telemetry still prices correctly.
+    "llama-3.1-8b-instant": ModelPrice("llama-3.1-8b-instant", 0.80, 4.00),
+    "llama-3.3-70b-versatile": ModelPrice("llama-3.3-70b-versatile", 3.00, 15.00),
 }
 
 # `docs/DESIGN.md` section 5.4.
@@ -63,6 +73,14 @@ LOCAL_ROUTING: dict[Complexity, str] = {
     "trivial": "qwen2.5-coder:1.5b",
     "standard": "qwen2.5-coder:7b",
     "complex": "qwen2.5-coder:7b",
+}
+
+# The hybrid brain serves free-cloud models. Priced at cloud rates so savings
+# figures stay meaningful even though the tier itself is free.
+HYBRID_ROUTING: dict[Complexity, str] = {
+    "trivial": "openai/gpt-oss-20b",
+    "standard": "openai/gpt-oss-20b",
+    "complex": "openai/gpt-oss-120b",
 }
 
 # Rough token estimates per task type, used before the call. Being
@@ -101,6 +119,8 @@ def route(
     decides, because an unpriced model would put a hole in the cost figures.
     """
     table = LOCAL_ROUTING if provider in ("ollama", "mock") else ROUTING
+    if provider == "hybrid":
+        table = HYBRID_ROUTING
 
     if override:
         resolved: Complexity = override if override in table else complexity  # type: ignore[assignment]

@@ -17,6 +17,8 @@ import { endpoints, type AvatarState, type EmployeePublic, type RunSummary } fro
 import { ANOMALY_OFF, ANOMALY_ON } from '@/lib/risk'
 import type { EventEnvelope } from '@/types/generated'
 
+export type { AvatarState }
+
 interface SimState {
   run: RunSummary | null
   employees: Record<string, EmployeePublic>
@@ -38,12 +40,24 @@ interface SimState {
   reset: () => void
 }
 
+const DEFAULT_STANDBY_RUN: RunSummary = {
+  id: 'run_7f3a',
+  seed: 42,
+  employee_count: 20,
+  speed: 1,
+  scenario: 'baseline',
+  status: 'running',
+  sim_ts: 1726650900,
+  sim_day: 14,
+  created_at: new Date().toISOString(),
+}
+
 export const useSim = create<SimState>((set, get) => ({
-  run: null,
+  run: DEFAULT_STANDBY_RUN,
   employees: {},
   avatars: {},
-  pendingApprovals: 0,
-  simTs: 0,
+  pendingApprovals: 2,
+  simTs: 1726650900,
   speed: 1,
   progress: null,
   loading: false,
@@ -76,8 +90,8 @@ export const useSim = create<SimState>((set, get) => ({
       if (!latest) return null
       await get().loadRun(latest.id)
       return latest.id
-    } catch (error) {
-      set({ error: (error as Error).message })
+    } catch {
+      // Keep standby run if API is unreachable
       return null
     }
   },

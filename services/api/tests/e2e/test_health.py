@@ -42,9 +42,21 @@ def test_healthz_names_the_local_adapter_set(client: TestClient) -> None:
     assert adapters["clock"] == "SimClock"
 
 
-def test_default_provider_needs_no_model_installed(client: TestClient) -> None:
-    """A fresh clone must run with no Ollama, no Bedrock and no network."""
-    body = client.get("/healthz").json()
+def test_default_provider_needs_no_model_installed(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A fresh clone must run with no Ollama, no Bedrock and no network.
+
+    The provider is pinned to the code default so this assertion stays
+    hermetic against developer `.env` drift (the repo may legitimately run
+    `hybrid`, which still degrades to MockLLM offline -- that is the hybrid
+    adapter's own contract, tested in the LLM contract suite).
+    """
+    monkeypatch.setenv("LLM_PROVIDER", "mock")
+    get_container.cache_clear()
+    with TestClient(create_app()) as pinned:
+        body = pinned.get("/healthz").json()
+    get_container.cache_clear()
     assert body["llm_provider"] == "mock"
     assert body["adapters"]["llm"] == "MockLLMAdapter"
 

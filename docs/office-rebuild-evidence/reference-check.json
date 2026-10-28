@@ -1,0 +1,19 @@
+{
+  "passed": [
+    "animation clock",
+    "wave interaction",
+    "local/global pause",
+    "reduced motion freeze",
+    "three viewport sizes",
+    "non-overlapping labels",
+    "room focus",
+    "zoom/fit",
+    "employee selection/drawer/Escape",
+    "system log toggle",
+    "keyboard names toggle",
+    "reduced-motion render",
+    "store status change/removal",
+    "empty telemetry preview"
+  ],
+  "pageErrors": []
+}

@@ -1,7 +1,7 @@
 # Autopilot Scope — what is real, what is simulated, what is new
 
-Written 2026-10-26, before any Autopilot code landed. This is the honest
-inventory required by the hackathon plan (Task A exit gate).
+Updated 2026-10-26 after the Autopilot implementation. This records what is
+implemented and what still requires live verification.
 
 ## Already real (unchanged, must keep working)
 
@@ -40,18 +40,22 @@ inventory required by the hackathon plan (Task A exit gate).
   fails open on transport errors — noted in DEVIATIONS. Autopilot does
   not use it and is fail-closed instead.
 
-## Newly planned (this branch, `feat/nebius-autopilot`)
+## Implemented on `feat/nebius-autopilot`
 
 1. `adapters/local/nebius_llm.py` — LLMPort against Nebius Token Factory
    (OpenAI-compatible) serving NVIDIA Nemotron. **No mock fallback**: a
    qualifying live run either uses the real model or fails loudly.
 2. `agentshield/autopilot/` — schemas, workspace, explorer, patch engine,
-   real test runner, bounded state machine, report builder. Domain-level:
+   Docker-only test runner, bounded state machine, persisted report. Domain-level:
    depends on ports + governance, never on adapters.
 3. `infra/fixtures/` — whitelisted disposable repos (`buggy-auth`,
-   `prompt-injection`) with real failing tests.
+   `prompt-injection`, `regression-guard`) with real failing tests.
 4. `api/routes_autopilot.py` + one React page (`routes/autopilot.tsx`).
-5. `infra/scripts/evaluate_autopilot.py` — measured, reproducible runs.
+5. `infra/scripts/evaluate_autopilot.py` — measured, reproducible probes and
+   live runs when prerequisites are available.
+
+Live Nebius calls, Docker container runs, and the recorded submission demo
+remain unverified because this machine has no Docker CLI and no Nebius key.
 
 ## Environment facts recorded at baseline (2026-10-26)
 
@@ -59,9 +63,8 @@ inventory required by the hackathon plan (Task A exit gate).
 - Web: 19 vitest tests pass; 3 pre-existing eslint errors in
   `routes/control/policies.tsx`, `policy-lab.tsx`, `routes/sandbox.tsx`
   (type-only imports) — fixed mechanically on this branch before new work.
-- Docker CLI/daemon: **not installed** on this machine. The test runner
-   therefore ships a hardened-subprocess sandbox (scrubbed env, rlimits,
-   socket blocking, fixed allowlisted command) and uses a disposable
-   container automatically where Docker *is* present.
+- Docker CLI/daemon: **not installed** on this machine. Autopilot requires
+  Docker and its prebuilt test image; coding jobs fail explicitly until both
+  are available. There is no host-subprocess execution mode.
 - `NEBIUS_API_KEY`: not configured in `.env` at baseline. Live Nemotron
   smoke tests require it; no mock substitution is permitted.

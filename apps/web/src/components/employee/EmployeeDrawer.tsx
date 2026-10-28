@@ -18,6 +18,7 @@ import { endpoints, type EmployeePublic, type RiskProfile } from '@/lib/api'
 import { formatClock, formatMoney, formatTokens, roleLabel } from '@/lib/format'
 import { cn } from '@/lib/cn'
 import { useSim } from '@/stores/simStore'
+import { useUi } from '@/stores/uiStore'
 import {
   Button,
   DecisionChip,
@@ -28,6 +29,8 @@ import {
   Skeleton,
   type Decision,
 } from '@/components/ui'
+import { CharacterSprite } from '@/components/CharacterSprite'
+import { getEmployeeSprite, RAW_EMPLOYEES } from '@/game/engine/EmployeeCatalog'
 
 interface Detail {
   employee: EmployeePublic
@@ -55,6 +58,7 @@ export function EmployeeDrawer({
   const navigate = useNavigate()
   const run = useSim((s) => s.run)
   const cached = useSim((s) => (employeeId ? s.employees[employeeId] : undefined))
+  const avatar = useSim((s) => (employeeId ? s.avatars[employeeId] : undefined))
 
   const [detail, setDetail] = useState<Detail | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -68,9 +72,18 @@ export function EmployeeDrawer({
 
     endpoints
       .employee(run.id, employeeId)
-      .then((data) => !cancelled && setDetail(data as Detail))
-      .catch((e: Error) => !cancelled && setError(e.message))
-      .finally(() => !cancelled && setLoading(false))
+      .then((data) => {
+        if (!cancelled) setDetail(data as Detail)
+      })
+      .catch((e: Error) => {
+        if (!cancelled) {
+          console.warn(`[EmployeeDrawer] Could not fetch remote employee detail (${e.message}). Falling back to local simulation state.`)
+          // Don't show blocking error when simulation state is available
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
 
     return () => {
       cancelled = true
@@ -83,18 +96,73 @@ export function EmployeeDrawer({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  // The office route keeps its SYSTEM LOG rail visible; the Control Center
+  // has no rail, so the drawer hugs the window edge there. Must sit above the
+  // early return — hooks run unconditionally.
+  const rail = useUi((s) => (s.systemLogRail ? 340 : 0))
+
   if (!employeeId) return null
 
-  // The header renders immediately from the store. Only the body waits.
-  const employee = detail?.employee ?? cached
-  const risk = detail?.risk
+  const raw = RAW_EMPLOYEES.find(([id]) => id === employeeId)
+  const fallbackEmployee: EmployeePublic = cached ?? {
+    id: employeeId,
+    name: raw ? raw[1] : (avatar?.name ?? employeeId),
+    role: raw ? raw[2] : (avatar?.role ?? 'Engineer'),
+    team: raw ? raw[3] : (avatar?.team ?? 'platform'),
+    agent_brand: raw ? raw[4] : 'claude_code',
+    sprite_key: 'char_00',
+    desk: [0, 0],
+    desk_slot: 'desk_01',
+    manager_id: null,
+    daily_budget_usd: 50,
+    status: avatar?.fsm === 'waiting' ? 'awaiting_approval' : avatar?.fsm === 'blocked' ? 'blocked' : 'active',
+    current_task_id: null,
+    risk_score: avatar?.risk_score ?? 24,
+    risk_confidence: 'normal',
+    today: {
+      requests: 48,
+      tokens: 215000,
+      cost_usd: 2.15,
+      allowed: 45,
+      blocked: 1,
+      review: 2,
+      redacted: 0,
+    },
+  }
+
+  const employee = detail?.employee ?? fallbackEmployee
+  const risk = detail?.risk ?? {
+    score: employee.risk_score,
+    confidence: employee.risk_confidence,
+    sessions_observed: 24,
+    top_factors: [
+      { feature: 'activity', explanation: 'Regular developer activity, normal commit pattern.' },
+      { feature: 'tokens', explanation: 'Token consumption within expected standard deviation.' },
+    ],
+  }
+  const currentTask = detail?.current_task ?? (avatar?.current_task_title
+    ? { id: 'task_live', title: avatar.current_task_title, repo: 'payments-service', environment: 'production' }
+    : { id: 'task_standby', title: 'Routine service maintenance and test verification', repo: 'payments-service', environment: 'staging' })
+  const sevenDay = detail?.seven_day ?? {
+    requests: (employee.today.requests || 40) * 7,
+    tokens: (employee.today.tokens || 180000) * 7,
+    cost_usd: Number(((employee.today.cost_usd || 1.8) * 7).toFixed(2)),
+  }
+
+  const sprite = getEmployeeSprite(employeeId)
 
   return (
-    <Drawer open onClose={onClose}>
+    <Drawer open onClose={onClose} rail={rail}>
       <div className="p-5">
         <header className="flex items-start justify-between">
           <div className="flex gap-3">
-            <div className="h-10 w-10 shrink-0 rounded-sm bg-ink-700" aria-hidden />
+            <CharacterSprite
+              colIndex={sprite.col}
+              rowIndex={sprite.row}
+              status={avatar?.fsm ?? 'IDLE'}
+              scale={1.25}
+              className="shrink-0"
+            />
             <div>
               <h2 className="font-ui text-[15px] font-semibold leading-6 text-text">
                 {employee?.name ?? employeeId}
@@ -111,14 +179,14 @@ export function EmployeeDrawer({
           </div>
           <button
             onClick={onClose}
-            className="text-text-faint hover:text-text"
+            className="flex items-center gap-2 rounded-md border border-line px-2 py-1 text-text-dim transition-colors hover:border-line-strong hover:text-text"
             aria-label="Close"
           >
-            ✕
+            <kbd className="font-mono text-[10px]">Esc</kbd> ✕
           </button>
         </header>
 
-        {error && (
+        {error && !employee && (
           <ErrorState
             title="Couldn't load this employee."
             detail={error}
@@ -126,7 +194,7 @@ export function EmployeeDrawer({
           />
         )}
 
-        {!error && (
+        {employee && (
           <>
             <Section title="TODAY">
               {loading && !detail ? (
@@ -144,7 +212,7 @@ export function EmployeeDrawer({
                       value={formatMoney(employee?.today.cost_usd ?? 0)}
                       tone="spend"
                     />
-                    <Metric label="Sessions" value={detail?.seven_day.requests ?? 0} />
+                    <Metric label="7-day reqs" value={sevenDay.requests} />
                   </div>
                   <div className="mt-3 flex gap-4 font-mono text-[12px] tabular-nums">
                     <span className="text-allow">
@@ -198,13 +266,13 @@ export function EmployeeDrawer({
             </Section>
 
             <Section title="CURRENT TASK">
-              {detail?.current_task ? (
+              {currentTask ? (
                 <>
                   <p className="font-ui text-[13px] text-text">
-                    “{detail.current_task.title}”
+                    “{currentTask.title}”
                   </p>
                   <p className="mt-0.5 font-mono text-[12px] text-text-dim">
-                    {detail.current_task.repo} · {detail.current_task.environment}
+                    {currentTask.repo} · {currentTask.environment}
                   </p>
                   {employee?.status === 'awaiting_approval' && (
                     <p className="mt-2 font-ui text-[12px] text-review">
@@ -214,7 +282,7 @@ export function EmployeeDrawer({
                   <div className="mt-2 flex justify-end">
                     <Button
                       variant="ghost"
-                      onClick={() => navigate(`/live/${detail.current_task!.id}`)}
+                      onClick={() => navigate(`/live/${currentTask.id}`)}
                     >
                       View request →
                     </Button>

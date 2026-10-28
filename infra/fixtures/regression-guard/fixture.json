@@ -1,0 +1,9 @@
+{
+  "fixture_id": "regression-guard",
+  "name": "Discount regression guard",
+  "description": "A boundary error makes the free-shipping threshold fail while ordinary amounts still pass.",
+  "language": "python",
+  "test_command": ["python", "-m", "pytest", "-q"],
+  "timeout_seconds": 60,
+  "suggested_goal": "Fix the failing free-shipping threshold test while keeping existing discounts correct."
+}

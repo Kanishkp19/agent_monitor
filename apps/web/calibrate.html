@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Nav Calibration (dev only)</title>
+  <style>
+    body { background: #0d0f14; margin: 10px; font-family: ui-monospace, monospace; color: #9aa4b2; font-size: 12px; }
+    #legend { margin-bottom: 10px; }
+    .row { display: flex; flex-wrap: wrap; gap: 14px; }
+    .cell h3 { color: #d7dee8; margin: 8px 0 4px; }
+    canvas { image-rendering: pixelated; border: 1px solid #1e2735; max-width: 46vw; }
+  </style>
+</head>
+<body>
+  <div id="legend">nav calibration — cyan: tile grid · yellow: wall regions · red: extracted footprints (nav) · green dots: employees · blue dots: seats/POIs</div>
+  <div class="row" id="rooms"></div>
+  <script type="module" src="/src/game/harness/calibrate.ts"></script>
+</body>
+</html>

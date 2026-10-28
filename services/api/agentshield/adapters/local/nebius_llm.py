@@ -20,6 +20,7 @@ with a `Retry-After` hint taking precedence when the provider sends one.
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 from typing import TYPE_CHECKING, Any
 
@@ -100,7 +101,7 @@ class NebiusAdapter:
             try:
                 await self._limiter.acquire()
                 raw = await self._post(payload)
-                return _bounded(raw, self._model)
+                return _bounded(raw, self._model).model_copy(update={"retry_count": attempt})
             except _RateLimited as exc:
                 last_error = str(exc)
                 if attempt >= self._retries:
@@ -200,7 +201,16 @@ def _nebius_tools(tools: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _bounded(raw: dict[str, Any], model_id: str) -> LLMResult:
-    result = _normalise(raw, model_id)
+    for choice in raw.get("choices") or []:
+        for call in (choice.get("message") or {}).get("tool_calls") or []:
+            arguments = (call.get("function") or {}).get("arguments")
+            try:
+                parsed = json.loads(arguments) if isinstance(arguments, str) else arguments
+            except (ValueError, TypeError) as exc:
+                raise LLMProviderError("Nebius returned malformed tool arguments") from exc
+            if not isinstance(parsed, dict):
+                raise LLMProviderError("Nebius returned non-object tool arguments")
+    result = _normalise(raw, str(raw.get("model") or model_id))
     if len(result.text) > _MAX_TEXT_CHARS:
         result = result.model_copy(
             update={"text": result.text[:_MAX_TEXT_CHARS] + "\n…[truncated]"}

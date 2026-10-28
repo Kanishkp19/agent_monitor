@@ -1,0 +1,18 @@
+{
+  "viewports": [
+    "1280x720",
+    "1440x900",
+    "1920x1080"
+  ],
+  "passed": [
+    "fixture states",
+    "keyboard selection",
+    "viewport controls",
+    "movement snapshots",
+    "reduced motion",
+    "snapshot additions/transitions/removals",
+    "route preview/rollback"
+  ],
+  "pageErrors": [],
+  "performance": "No sustained frame timing or memory measurement; no 60fps claim."
+}
