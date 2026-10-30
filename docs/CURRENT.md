@@ -1,4 +1,20 @@
-# Current slice: Public Autopilot preview (2026-10-30)
+# Current slice: Complete public preview reads (2026-10-30)
+
+Cause: the public Vite proxy forwards only `/api/v1/autopilot`, so other app
+pages receive SPA HTML in place of API JSON even though the backend is healthy.
+Scope: forward read-only API and telemetry traffic through the public preview;
+keep writes outside token-protected Autopilot blocked. Preserve the current
+demo token and URL. Files: `apps/web/vite.public.config.ts`,
+`apps/web/tsconfig.node.json`, this status file.
+Checks: web typecheck; public GET approvals JSON; public POST policies blocked;
+Autopilot token and fixture flow; browser approvals page. Status: complete.
+The public Approvals page loads without JSON errors. GET approvals returns
+JSON 200 for the active run; policy writes and a traversal-shaped POST return
+403. Autopilot without a token returns 401, while the current token loads all
+three fixtures. The backend `/readyz` returned 200. Other public pages can read
+state, but actions outside Autopilot remain deliberately read-only.
+
+# Previous slice: Public Autopilot preview (2026-10-30)
 
 Scope: publish a free public preview from this Docker host with only the
 token-protected Autopilot API reachable through the web proxy. Remove the

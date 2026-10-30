@@ -60,6 +60,8 @@ quality.
 - Public code: https://github.com/Kanishkp19/agent_monitor/tree/feat/nebius-autopilot
 - Public live demo: https://adduceable-farraginous-cedrick.ngrok-free.dev/autopilot
   (free ngrok preview; the laptop, Docker, API, Vite, and tunnel must stay running).
+  Other console pages are viewable, but write actions outside token-protected
+  Autopilot are disabled in this public preview.
 - Setup and judge walkthrough: https://github.com/Kanishkp19/agent_monitor/blob/feat/nebius-autopilot/docs/AUTOPILOT-DEMO.md
 - [Public sanitized results](autopilot-live-results.json). The full local
   evaluation is `.data/autopilot-evaluation.json` (ignored; contains job IDs).
