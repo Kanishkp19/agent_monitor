@@ -37,7 +37,9 @@ the goal and bounded repository/test context, proposes exact source patches,
 and returns structured tool calls. The configured default is
 `nvidia/nemotron-3-super-120b-a12b`, present in the
 [official model catalog](https://tokenfactory.nebius.com/model-catalog.md)
-when checked on 2026-10-26. Account availability still requires a live smoke run.
+when checked on 2026-10-26. The measured 2026-10-30 runs used the account's
+configured `nvidia/nemotron-3.5-lightning-30b-a3b` instead; see
+[live results](DEVPOST-READY.md).
 
 The adapter sends OpenAI-compatible `messages` and `tools` with function names,
 descriptions and JSON Schema parameters to `/chat/completions`. Tool arguments
@@ -64,14 +66,10 @@ a public open-source repository, setup instructions, a working demo/test build,
 a public YouTube demonstration, track selection, feedback, and prior-work
 disclosure. This document prepares those materials; it does not publish them.
 
-Remaining submission actions after live verification:
+Remaining submission actions:
 
-1. Save real Nemotron tool-call, model-ID, usage and `fallback: False` evidence.
-2. Run all three jobs and ten probes; attach measured reports and final commits.
-3. Record and upload a video under three minutes, then supply its public URL.
-4. Supply the public repository and working demo/test-build URLs. Provide the
+1. Record and upload a video under three minutes, then supply its public URL.
+2. Supply the public repository and working demo/test-build URLs. Provide the
    demo token privately in judge testing instructions; never commit credentials.
-5. Complete Token Factory/NVIDIA feedback based on actual use. Offline findings:
-   the OpenAI-compatible tool interface fits the existing port, while explicit
-   model identity and error handling are essential to verifiable runs. Latency,
-   reliability and model quality feedback remain pending live measurements.
+3. Complete Token Factory/NVIDIA feedback based on the measured runs in
+   [the Devpost draft](DEVPOST-READY.md).

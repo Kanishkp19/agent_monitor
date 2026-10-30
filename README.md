@@ -58,9 +58,9 @@ enable jobs. The API rejects creation/status/reset with HTTP 422 and a clear
 Events use cursor polling (`since_seq`), not SSE. OpenAPI is at
 `http://localhost:8000/openapi.json`.
 
-See [submission disclosure](docs/HACKATHON-SUBMISSION.md) and
-[timed demo script](docs/AUTOPILOT-DEMO.md). Live inference remains unverified
-until actual credentials and Docker are available.
+See [submission disclosure](docs/HACKATHON-SUBMISSION.md),
+[measured live results](docs/DEVPOST-READY.md), and
+[timed demo script](docs/AUTOPILOT-DEMO.md).
 
 ## 🤔 What is AgentShield?
 

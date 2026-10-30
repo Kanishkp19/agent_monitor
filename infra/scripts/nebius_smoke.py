@@ -69,7 +69,7 @@ async def main() -> int:
             messages=[{"role": "user", "content": "Reply with exactly: NEBIUS-OK"}],
             tools=[],
             model="standard",
-            max_tokens=64,
+            max_tokens=512,
         )
         latency = (time.perf_counter() - started) * 1000
         print("\n[1/2] text generation")

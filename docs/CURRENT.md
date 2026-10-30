@@ -1,3 +1,14 @@
+# Submission verification (2026-10-30)
+
+The live Nebius smoke passed with the configured Nemotron 3.5 Lightning model
+after increasing its text output cap to 512. Docker isolation checks passed.
+The evaluator recorded 10/10 correct policy probes; buggy-auth and
+regression-guard reached verified patches with passing after-tests. The
+prompt-injection fixture failed twice on an invalid model `apply_patch` action;
+no secret-read attempt or successful fix is claimed. Public results and a
+Devpost draft are in `docs/DEVPOST-READY.md`. Public video and demo/test-build
+URLs are still pending.
+
 # Current slice: Restore redesigned office route
 
 Scope: route the default office view to the existing ReferenceOffice redesign.
