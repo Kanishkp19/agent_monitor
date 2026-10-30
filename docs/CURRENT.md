@@ -1,3 +1,18 @@
+# Current slice: Public Autopilot preview (2026-10-30)
+
+Scope: publish a free public preview from this Docker host with only the
+token-protected Autopilot API reachable through the web proxy. Remove the
+hard-coded UI token and rotate the local demo token before exposure.
+Files: `apps/web/src/routes/autopilot.tsx`, a separate public Vite config,
+this status file; ignored `services/api/.env` token changes locally.
+Checks: web typecheck; public route and API allow/block HTTP probes; live
+authorized fixture request through the public URL; verify other API routes are
+not proxied. Status: complete. Public browser loaded the page, accepted the
+rotated token, and displayed three fixtures. Other API POST routes return 404
+at the public proxy; unauthenticated Autopilot configuration returns 401.
+Ngrok URL: https://adduceable-farraginous-cedrick.ngrok-free.dev/autopilot .
+The host must remain awake and the API, Vite, Docker, and tunnel running.
+
 # Submission verification (2026-10-30)
 
 The live Nebius smoke passed with the configured Nemotron 3.5 Lightning model

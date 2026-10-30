@@ -38,7 +38,7 @@ function Receipt({ title, result }: { title: string; result: TestReceipt | null 
 }
 
 export default function AutopilotRoute() {
-  const [token, setToken] = useState('demo-autopilot-2026')
+  const [token, setToken] = useState('')
   const [fixtures, setFixtures] = useState<Fixture[]>([])
   const [fixtureId, setFixtureId] = useState('')
   const [goal, setGoal] = useState('')

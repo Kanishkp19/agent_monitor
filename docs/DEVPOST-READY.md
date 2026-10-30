@@ -58,6 +58,8 @@ quality.
 ## Verified evidence and links
 
 - Public code: https://github.com/Kanishkp19/agent_monitor/tree/feat/nebius-autopilot
+- Public live demo: https://adduceable-farraginous-cedrick.ngrok-free.dev/autopilot
+  (free ngrok preview; the laptop, Docker, API, Vite, and tunnel must stay running).
 - Setup and judge walkthrough: https://github.com/Kanishkp19/agent_monitor/blob/feat/nebius-autopilot/docs/AUTOPILOT-DEMO.md
 - [Public sanitized results](autopilot-live-results.json). The full local
   evaluation is `.data/autopilot-evaluation.json` (ignored; contains job IDs).
@@ -71,10 +73,12 @@ quality.
 1. Record actual UI and report evidence using [the 2:59 storyboard](AUTOPILOT-DEMO.md).
    Upload it as a **public YouTube video** and add its URL. Hide API keys and
    demo tokens in every frame.
-2. Supply a URL to a working hosted demo or downloadable test build. The
-   repository URL alone is already used for the separate public-code field;
-   local `localhost` links are inaccessible to judges. If using a local test
-   build, include exact setup and a secure way for judges to obtain credentials.
+2. Paste the live demo URL above into Devpost's demo field. Keep this computer
+   awake and online through judging. Ngrok's free tier shows a one-time browser
+   warning before the app. The Autopilot UI requires the rotated demo token in
+   ignored `services/api/.env`; share it only through private judge instructions,
+   never in the public description or video. The endpoint stops working when
+   the local processes or computer stop.
 3. Paste this description, track, feedback, and prior-work disclosure into the
    Devpost project, verify every link in a signed-out browser, and submit before
    the deadline. Do not describe the failed injection job as successful.
